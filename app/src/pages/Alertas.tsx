@@ -14,7 +14,7 @@ function padraoDe(a: Alerta) {
 
 export function Alertas() {
   const [sp, setSp] = useSearchParams()
-  const { session } = useAuth()
+  const { session, podeEditar } = useAuth()
   const [filtro, setFiltro] = useState<'ativos' | 'todos'>('ativos')
   const { alertas, recarregar } = useAlertas(filtro === 'ativos')
   const { motores } = useMotores()
@@ -27,7 +27,7 @@ export function Alertas() {
   }, [])
 
   async function reconhecer() {
-    if (!sel) return
+    if (!sel || !podeEditar) return
     await supabase
       .from('alertas')
       .update({ status: 'reconhecido', reconhecido_por: session?.user.id, reconhecido_em: new Date().toISOString(), acao_registrada: acaoTxt || null })
@@ -36,7 +36,7 @@ export function Alertas() {
     recarregar()
   }
   async function silenciar() {
-    if (!sel) return
+    if (!sel || !podeEditar) return
     await supabase.from('alertas').update({ status: 'silenciado' }).eq('id', sel.id)
     recarregar()
   }
@@ -103,7 +103,11 @@ export function Alertas() {
                   </div>
                 ))}
               </div>
-              {sel.status === 'ativo' ? (
+              {sel.status === 'ativo' && !podeEditar ? (
+                <p className="muted">
+                  <span className="pill">Somente visualização</span> Um admin ou o master da empresa reconhece o alerta e registra a ação.
+                </p>
+              ) : sel.status === 'ativo' ? (
                 <>
                   <div className="field" style={{ marginBottom: 10 }}>
                     <label htmlFor="acao">O que foi feito</label>

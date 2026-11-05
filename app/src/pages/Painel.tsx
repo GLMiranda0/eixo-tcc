@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../lib/auth'
+import { useAuth, useContaAtiva } from '../lib/auth'
 import { useAlertas, useMotores, useUltimasLeituras } from '../lib/hooks'
 import { supabase } from '../lib/supabase'
 import { SEV_LABEL, fmt, pior, type Regra, type StatusAprendizado } from '../lib/types'
 
 export function Painel() {
   const nav = useNavigate()
-  const { perfil, session } = useAuth()
+  const { perfil, session, podeEditar, isDev } = useAuth()
+  const { semEmpresa } = useContaAtiva()
   const { motores, carregando } = useMotores()
   const ids = useMemo(() => motores.map((m) => m.id), [motores])
   const ultimas = useUltimasLeituras(ids)
@@ -17,7 +18,12 @@ export function Painel() {
   const [leiturasHoje, setLeiturasHoje] = useState<number | null>(null)
 
   useEffect(() => {
-    if (!ids.length) return
+    if (!ids.length) {
+      setRegras([])
+      setStatus({})
+      setLeiturasHoje(semEmpresa ? null : 0)
+      return
+    }
     supabase.from('regras_diagnostico').select('*').in('motor_id', ids).then(({ data }) => setRegras((data as Regra[]) ?? []))
     supabase
       .from('status_aprendizado')
@@ -33,8 +39,10 @@ export function Painel() {
     supabase
       .from('leituras')
       .select('id', { count: 'exact', head: true })
+      .in('motor_id', ids)
       .gte('ts', inicio.toISOString())
       .then(({ count }) => setLeiturasHoje(count ?? 0))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ids])
 
   const hora = new Date().getHours()
@@ -51,13 +59,31 @@ export function Painel() {
             {saud}, {nome}
           </h1>
         </div>
-        <Link to="/tutorial" className="btn btn-secondary btn-sm">
-          Modo simulação
-        </Link>
-        <Link to="/motores" className="btn btn-primary">
-          + Novo motor
-        </Link>
+        {podeEditar ? (
+          <>
+            <Link to="/tutorial" className="btn btn-secondary btn-sm">
+              Modo simulação
+            </Link>
+            <Link to="/motores" className="btn btn-primary">
+              + Novo motor
+            </Link>
+          </>
+        ) : (
+          <span className="pill">Somente visualização</span>
+        )}
       </div>
+
+      {isDev && semEmpresa && (
+        <div className="banner info">
+          <div className="sev ok">i</div>
+          <div>
+            <b>Selecione uma empresa no painel Dev.</b> <span className="muted">Como suporte, você vê o quadro de uma empresa por vez.</span>
+          </div>
+          <Link to="/dev" className="btn btn-secondary btn-sm">
+            Abrir painel Dev
+          </Link>
+        </div>
+      )}
 
       <div className="grid g4" style={{ marginBottom: 14 }}>
         <div className="card stripe ok">
@@ -80,7 +106,7 @@ export function Painel() {
           <div className="stat">
             <span className="eyebrow">Leituras hoje</span>
             <span className="v num">{leiturasHoje == null ? '–' : leiturasHoje.toLocaleString('pt-BR')}</span>
-            <span className="muted">todas as contas desta organização</span>
+            <span className="muted">todos os motores desta empresa</span>
           </div>
         </div>
         <div className="card stripe">
@@ -98,9 +124,19 @@ export function Painel() {
             <p className="muted" style={{ padding: 20 }}>
               Carregando…
             </p>
+          ) : isDev && semEmpresa ? (
+            <div className="empty" style={{ margin: 16 }}>
+              Selecione uma empresa no painel Dev para ver os motores dela.
+            </div>
           ) : motores.length === 0 ? (
             <div className="empty" style={{ margin: 16 }}>
-              Nenhum motor cadastrado ainda. <Link to="/tutorial">Comece pelo Caminho de Tutorial</Link> ou <Link to="/motores">cadastre um motor real</Link>.
+              {podeEditar ? (
+                <>
+                  Nenhum motor cadastrado ainda. <Link to="/tutorial">Comece pelo Caminho de Tutorial</Link> ou <Link to="/motores">cadastre um motor real</Link>.
+                </>
+              ) : (
+                'Nenhum motor cadastrado nesta empresa ainda.'
+              )}
             </div>
           ) : (
             <div className="tbl-wrap">

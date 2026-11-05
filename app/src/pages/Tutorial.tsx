@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Gauge, NaoMedido } from '../components/Gauge'
-import { useAuth } from '../lib/auth'
+import { useAuth, useContaAtiva } from '../lib/auth'
 import { useLeituras, useMotor } from '../lib/hooks'
 import { ColetorVirtual } from '../lib/sim'
 import { novoToken, sha256Hex, supabase } from '../lib/supabase'
@@ -18,7 +18,8 @@ const ETAPAS = [
 ] as const
 
 export function Tutorial() {
-  const { perfil } = useAuth()
+  const { perfil, podeEditar } = useAuth()
+  const { contaId, pronto, semEmpresa } = useContaAtiva()
   const [etapa, setEtapa] = useState(0)
   const [feitas, setFeitas] = useState<Set<number>>(new Set())
   const [motorSim, setMotorSim] = useState<Motor | null>(null)
@@ -34,15 +35,15 @@ export function Tutorial() {
 
   // motor simulado já existente?
   useEffect(() => {
-    supabase
-      .from('motores')
-      .select('*')
-      .eq('simulado', true)
-      .order('criado_em', { ascending: false })
+    if (!pronto) return
+    if (semEmpresa) return setMotorSim(null)
+    let q = supabase.from('motores').select('*').eq('simulado', true)
+    if (contaId) q = q.eq('conta_id', contaId)
+    q.order('criado_em', { ascending: false })
       .limit(1)
       .maybeSingle()
-      .then(({ data }) => data && setMotorSim(data as Motor))
-  }, [])
+      .then(({ data }) => setMotorSim((data as Motor | null) ?? null))
+  }, [contaId, pronto, semEmpresa])
 
   // alerta ativo do motor simulado
   useEffect(() => {
@@ -79,6 +80,7 @@ export function Tutorial() {
 
   async function criarMotor() {
     setErro(null)
+    if (!podeEditar) return setErro('O modo simulação exige papel admin ou master.')
     if (!perfil?.conta_id) return setErro('Seu perfil ainda não está ligado a uma conta.')
     const tag = 'M-SIM-' + Math.random().toString(36).slice(2, 5).toUpperCase()
     const { data: m, error } = await supabase
@@ -101,6 +103,7 @@ export function Tutorial() {
 
   async function ligarColetor() {
     if (!motorSim) return
+    if (!podeEditar) return setErro('O modo simulação exige papel admin ou master.')
     let token: string | null = null
     try {
       token = sessionStorage.getItem('eixo-token-' + motorSim.id)
@@ -160,7 +163,7 @@ export function Tutorial() {
         return motorSim ? (
           <p className="pill ok">Motor virtual {motorSim.tag} pronto</p>
         ) : (
-          <button className="btn btn-primary" onClick={criarMotor}>
+          <button className="btn btn-primary" onClick={criarMotor} disabled={!podeEditar}>
             Criar motor virtual
           </button>
         )
@@ -177,7 +180,7 @@ export function Tutorial() {
                 </button>
               </>
             ) : (
-              <button className="btn btn-primary" onClick={ligarColetor} disabled={!motorSim}>
+              <button className="btn btn-primary" onClick={ligarColetor} disabled={!motorSim || !podeEditar}>
                 Ligar coletor virtual
               </button>
             )}
@@ -224,6 +227,19 @@ export function Tutorial() {
         </div>
         {motorSim && <span className="pill sim">{motorSim.tag}</span>}
       </div>
+
+      {!podeEditar && (
+        <div className="banner">
+          <div className="sev warn">!</div>
+          <div>
+            <b>Somente visualização.</b>{' '}
+            <span className="muted">
+              O modo simulação cria um motor e liga um coletor virtual na empresa, por isso exige papel admin ou master. Você pode ler as etapas e acompanhar
+              um motor virtual que já exista.
+            </span>
+          </div>
+        </div>
+      )}
 
       <div className="card" style={{ marginBottom: 14 }}>
         <div className="card-h">

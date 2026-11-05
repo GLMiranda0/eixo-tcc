@@ -1,15 +1,55 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useContaAtiva } from './auth'
 import { supabase } from './supabase'
 import type { Alerta, Coletor, Leitura, Motor, Regra, StatusAprendizado } from './types'
 
+/** id único por instância, para não reaproveitar o mesmo canal Realtime entre componentes */
+function useCanal(prefixo: string) {
+  const r = useRef(prefixo + '-' + Math.random().toString(36).slice(2, 8))
+  return r.current
+}
+
+/**
+ * IDs dos motores visíveis para o filtro atual.
+ * null = sem filtro extra (usuário normal: o RLS já isola a empresa).
+ * [] = nada a mostrar (dev sem empresa selecionada ou empresa sem motores).
+ */
+export function useIdsMotoresFiltro() {
+  const { contaId, isDev, semEmpresa } = useContaAtiva()
+  const [ids, setIds] = useState<string[] | null>(isDev ? [] : null)
+  useEffect(() => {
+    if (!isDev) return setIds(null)
+    if (semEmpresa || !contaId) return setIds([])
+    let vivo = true
+    supabase
+      .from('motores')
+      .select('id')
+      .eq('conta_id', contaId)
+      .then(({ data }) => vivo && setIds(((data as { id: string }[]) ?? []).map((m) => m.id)))
+    return () => {
+      vivo = false
+    }
+  }, [contaId, isDev, semEmpresa])
+  return ids
+}
+
 export function useMotores() {
+  const { contaId, pronto, semEmpresa } = useContaAtiva()
   const [motores, setMotores] = useState<Motor[]>([])
   const [carregando, setCarregando] = useState(true)
   const recarregar = useCallback(async () => {
-    const { data } = await supabase.from('motores').select('*').order('tag')
+    if (!pronto) return
+    if (semEmpresa) {
+      setMotores([])
+      setCarregando(false)
+      return
+    }
+    let q = supabase.from('motores').select('*').order('tag')
+    if (contaId) q = q.eq('conta_id', contaId)
+    const { data } = await q
     setMotores((data as Motor[]) ?? [])
     setCarregando(false)
-  }, [])
+  }, [contaId, pronto, semEmpresa])
   useEffect(() => {
     recarregar()
   }, [recarregar])
@@ -104,21 +144,30 @@ export function useUltimasLeituras(motorIds: string[]) {
 
 export function useAlertas(somenteAtivos: boolean) {
   const [alertas, setAlertas] = useState<Alerta[]>([])
+  const ids = useIdsMotoresFiltro()
+  const chaveIds = ids ? ids.join(',') : '*'
+  const canal = useCanal('alertas-lista')
   const recarregar = useCallback(async () => {
+    if (ids && !ids.length) {
+      setAlertas([])
+      return
+    }
     let q = supabase.from('alertas').select('*').order('criado_em', { ascending: false }).limit(100)
     if (somenteAtivos) q = q.eq('status', 'ativo')
+    if (ids) q = q.in('motor_id', ids)
     const { data } = await q
     setAlertas((data as Alerta[]) ?? [])
-  }, [somenteAtivos])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [somenteAtivos, chaveIds])
   useEffect(() => {
     recarregar()
     const ch = supabase
-      .channel('alertas-lista')
+      .channel(canal)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'alertas' }, recarregar)
       .subscribe()
     return () => {
       supabase.removeChannel(ch)
     }
-  }, [recarregar])
+  }, [recarregar, canal])
   return { alertas, recarregar }
 }

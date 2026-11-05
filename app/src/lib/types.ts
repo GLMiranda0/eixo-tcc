@@ -83,12 +83,70 @@ export interface StatusAprendizado {
   aviso_multispeed: boolean
 }
 
+export type Papel = 'dev' | 'master' | 'admin' | 'comum'
+
 export interface Perfil {
   id: string
   conta_id: string | null
   nome: string | null
-  papel: 'admin' | 'operador'
+  papel: Papel
+  ativo: boolean
+  email: string | null
+  criado_por: string | null
+  criado_em: string
 }
+
+export interface Conta {
+  id: string
+  nome: string
+  cnpj: string | null
+  ativa: boolean
+  criado_em: string
+}
+
+export interface Convite {
+  id: string
+  conta_id: string
+  email: string
+  papel: 'admin' | 'comum'
+  criado_por: string | null
+  criado_em: string
+  aceito_em: string | null
+  aceito_por: string | null
+}
+
+export interface Auditoria {
+  id: number
+  ts: string
+  usuario_id: string | null
+  usuario_email: string | null
+  conta_id: string | null
+  tabela: string
+  operacao: 'INSERT' | 'UPDATE' | 'DELETE'
+  registro_id: string | null
+  antes: Record<string, unknown> | null
+  depois: Record<string, unknown> | null
+}
+
+export interface VisaoDev {
+  conta_id: string
+  nome: string
+  cnpj: string | null
+  ativa: boolean
+  criado_em: string
+  usuarios: number
+  masters: number
+  admins: number
+  comuns: number
+  motores: number
+  coletores: number
+  alertas_ativos: number
+  ultimo_contato: string | null
+}
+
+export const PAPEL_LABEL: Record<Papel, string> = { dev: 'Dev', master: 'Master', admin: 'Admin', comum: 'Comum' }
+
+export const LIMITES_PAPEL: Record<'master' | 'admin' | 'comum', number> = { master: 1, admin: 4, comum: 5 }
 
 export const GRANDEZAS: Record<Grandeza, { nome: string; unidade: string; cor: string; min: number; max: number; casas: number }> = {
   temp: { nome: 'Temperatura', unidade: '°C', cor: 'var(--s-temp)', min: 20, max: 100, casas: 0 },

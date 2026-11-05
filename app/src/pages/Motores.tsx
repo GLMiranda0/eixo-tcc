@@ -6,7 +6,7 @@ import { novoToken, sha256Hex, supabase } from '../lib/supabase'
 
 export function Motores() {
   const nav = useNavigate()
-  const { perfil } = useAuth()
+  const { perfil, podeEditar } = useAuth()
   const { motores, recarregar } = useMotores()
   const [aberto, setAberto] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
@@ -15,6 +15,10 @@ export function Motores() {
   async function salvar(e: FormEvent) {
     e.preventDefault()
     setErro(null)
+    if (!podeEditar) {
+      setErro('Seu papel não permite cadastrar motores.')
+      return
+    }
     if (!perfil?.conta_id) {
       setErro('Seu perfil ainda não está ligado a uma conta.')
       return
@@ -75,12 +79,16 @@ export function Motores() {
           <p className="eyebrow">Motores</p>
           <h1>{motores.length} motores</h1>
         </div>
-        <button className="btn btn-primary" onClick={() => setAberto(!aberto)}>
-          + Novo motor
-        </button>
+        {podeEditar ? (
+          <button className="btn btn-primary" onClick={() => setAberto(!aberto)}>
+            + Novo motor
+          </button>
+        ) : (
+          <span className="pill">Somente visualização</span>
+        )}
       </div>
 
-      {aberto && (
+      {aberto && podeEditar && (
         <form className="card" style={{ marginBottom: 14 }} onSubmit={salvar}>
           <h3 style={{ marginBottom: 10 }}>Dados de placa</h3>
           <p className="muted" style={{ marginBottom: 12 }}>
@@ -160,7 +168,9 @@ export function Motores() {
       )}
 
       {motores.length === 0 ? (
-        <div className="empty">Nenhum motor ainda. Cadastre o primeiro acima ou use o Caminho de Tutorial.</div>
+        <div className="empty">
+          {podeEditar ? 'Nenhum motor ainda. Cadastre o primeiro acima ou use o Caminho de Tutorial.' : 'Nenhum motor cadastrado nesta empresa ainda.'}
+        </div>
       ) : (
         <div className="grid g3">
           {motores.map((m) => (

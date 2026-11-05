@@ -26,6 +26,20 @@ Abre em http://localhost:5173. As variáveis `VITE_SUPABASE_URL` e `VITE_SUPABAS
 | `src/pages/Motor.tsx` | Tempo real, histórico, fases do diagnóstico, limites, coletor e token |
 | `src/pages/Alertas.tsx` | Diagnóstico, ações corretivas, reconhecer/silenciar |
 | `src/pages/Tutorial.tsx` | Caminho de Tutorial com motor e coletor virtuais |
+| `src/pages/Usuarios.tsx` | Equipe da empresa (só master): convites, papéis, desativação, limites 1/4/5 |
+| `src/pages/Auditoria.tsx` | Registro de operações (master, admin e dev) com diff do que mudou |
+| `src/pages/Dev.tsx` | Visão global para suporte (só dev): empresas, contagens e "Abrir quadro" |
+
+## Papéis
+
+| Papel | Quem | Pode |
+|---|---|---|
+| dev | equipe Eixo | ver todas as empresas e abrir o quadro de qualquer uma, sem editar |
+| master | 1 por empresa | tudo do admin + gerenciar usuários e convites |
+| admin | até 4 por empresa | cadastrar e editar motores, coletores, regras; reconhecer alertas |
+| comum | até 5 por empresa | só visualizar e acompanhar o monitoramento |
+
+Uma empresa nunca enxerga dados de outra (Row Level Security no banco).
 
 ## Banco
 

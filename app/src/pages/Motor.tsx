@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { Gauge, NaoMedido } from '../components/Gauge'
 import { LineChart } from '../components/LineChart'
+import { useAuth } from '../lib/auth'
 import { useLeituras, useMotor } from '../lib/hooks'
 import { novoToken, sha256Hex, supabase } from '../lib/supabase'
 import { GRANDEZAS, SEV_LABEL, fmt, pior, severidade, type Grandeza } from '../lib/types'
@@ -11,6 +12,7 @@ const URL_INGEST = (import.meta.env.VITE_SUPABASE_URL as string) + '/rest/v1/rpc
 export function Motor() {
   const { id } = useParams()
   const [sp] = useSearchParams()
+  const { podeEditar } = useAuth()
   const { motor, coletor, regras, status, recarregar } = useMotor(id)
   const leituras = useLeituras(id, 120)
   const [histS, setHistS] = useState<Grandeza>('corr')
@@ -37,7 +39,7 @@ export function Motor() {
   const avisoMs = motor?.aplicacao === 'multispeed' && !medidas.includes('rot')
 
   async function rotacionar() {
-    if (!coletor) return
+    if (!coletor || !podeEditar) return
     const t = novoToken()
     const { error } = await supabase.from('coletores').update({ token_hash: await sha256Hex(t) }).eq('id', coletor.id)
     if (error) return alert(error.message)
@@ -50,13 +52,13 @@ export function Motor() {
   }
 
   async function alternar(campo: string, valor: boolean) {
-    if (!coletor) return
+    if (!coletor || !podeEditar) return
     await supabase.from('coletores').update({ [campo]: valor }).eq('id', coletor.id)
     recarregar()
   }
 
   async function mudarAplicacao(v: 'fixa' | 'multispeed') {
-    if (!motor) return
+    if (!motor || !podeEditar) return
     await supabase.from('motores').update({ aplicacao: v }).eq('id', motor.id)
     recarregar()
   }
@@ -96,17 +98,23 @@ export function Motor() {
           {online && <span className="dot" />}
           {online ? 'Coletor online' : 'Coletor offline'}
         </span>
-        <div className="seg" title="Tipo de aplicação">
-          <button className={motor.aplicacao === 'fixa' ? 'on' : ''} onClick={() => mudarAplicacao('fixa')}>
-            Velocidade fixa
-          </button>
-          <button className={motor.aplicacao === 'multispeed' ? 'on' : ''} onClick={() => mudarAplicacao('multispeed')}>
-            Multispeed
-          </button>
-        </div>
+        {podeEditar ? (
+          <div className="seg" title="Tipo de aplicação">
+            <button className={motor.aplicacao === 'fixa' ? 'on' : ''} onClick={() => mudarAplicacao('fixa')}>
+              Velocidade fixa
+            </button>
+            <button className={motor.aplicacao === 'multispeed' ? 'on' : ''} onClick={() => mudarAplicacao('multispeed')}>
+              Multispeed
+            </button>
+          </div>
+        ) : (
+          <span className="pill" title="Tipo de aplicação">
+            {motor.aplicacao === 'multispeed' ? 'Multispeed' : 'Velocidade fixa'} · somente visualização
+          </span>
+        )}
       </div>
 
-      {sp.get('novo') && token && (
+      {sp.get('novo') && token && podeEditar && (
         <div className="banner info">
           <div className="sev ok">✓</div>
           <div>
@@ -129,9 +137,11 @@ export function Motor() {
               <span className="mono">"rot"</span> no payload (sensor Hall, encoder ou saída do inversor) e o Eixo passa a aprender uma linha de base por faixa de velocidade.
             </span>
           </div>
-          <a href="#coletor" className="btn btn-secondary btn-sm">
-            Configurar rotação
-          </a>
+          {podeEditar && (
+            <a href="#coletor" className="btn btn-secondary btn-sm">
+              Configurar rotação
+            </a>
+          )}
         </div>
       )}
       {medidas.includes('rot') && (
@@ -242,6 +252,7 @@ export function Motor() {
       <div className="card" id="coletor">
         <div className="card-h">
           <h3>Coletor</h3>
+          {!podeEditar && <span className="pill">Somente visualização</span>}
           <span className="muted">{coletor?.ultimo_contato ? 'último contato ' + new Date(coletor.ultimo_contato).toLocaleString('pt-BR') : 'nunca se conectou'}</span>
         </div>
         <div className="grid g2">
@@ -263,7 +274,11 @@ export function Motor() {
                         chave <span className="mono">"{g}"</span>
                       </small>
                     </div>
-                    <button className={'switch ' + (on ? 'on' : '')} aria-label={'Ativar ' + GRANDEZAS[g].nome} disabled={coletor?.tipo === 'eixo' && padraoEixo} onClick={() => alternar(campo, !on)} />
+                    {podeEditar ? (
+                      <button className={'switch ' + (on ? 'on' : '')} aria-label={'Ativar ' + GRANDEZAS[g].nome} disabled={coletor?.tipo === 'eixo' && padraoEixo} onClick={() => alternar(campo, !on)} />
+                    ) : (
+                      <span className={'pill ' + (on ? 'ok' : '')}>{on ? 'medido' : 'não medido'}</span>
+                    )}
                   </div>
                 )
               })}
@@ -282,10 +297,12 @@ export function Motor() {
             <div className="field" style={{ marginBottom: 10 }}>
               <label>Token do dispositivo</label>
               <div className="row">
-                <input readOnly value={token ?? '•••••••• (guardado só como hash)'} className="mono" style={{ fontSize: 12, flex: 1 }} />
-                <button className="btn btn-secondary btn-sm" onClick={rotacionar}>
-                  Rotacionar
-                </button>
+                <input readOnly value={podeEditar && token ? token : '•••••••• (guardado só como hash)'} className="mono" style={{ fontSize: 12, flex: 1 }} />
+                {podeEditar && (
+                  <button className="btn btn-secondary btn-sm" onClick={rotacionar}>
+                    Rotacionar
+                  </button>
+                )}
               </div>
             </div>
             <p className="eyebrow" style={{ margin: '8px 0 6px' }}>

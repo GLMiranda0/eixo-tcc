@@ -11,15 +11,20 @@ Projeto Supabase: `qcyortrufewhxdyzukyc` · https://qcyortrufewhxdyzukyc.supabas
 
 O token é de teste e pode ser rotacionado a qualquer momento: basta atualizar `coletores.token_hash` com `encode(digest('<novo token>','sha256'),'hex')`.
 
-## Usuário de teste do app (Supabase Auth)
+## Usuários de teste do app (Supabase Auth)
 
-| Campo | Valor |
-|---|---|
-| E-mail | `teste@eixo.local` |
-| Senha | em `segredos.local.md` (arquivo local, fora do git) |
-| Criado | pelo painel Authentication › Users com auto-confirmação, em 04/11/2026 |
+Criados pelo painel Authentication › Users com auto-confirmação em 04/11/2026. Senhas em `segredos.local.md` (arquivo local, fora do git).
 
-O trigger `handle_new_user` cria automaticamente uma conta própria e o perfil admin para cada usuário novo.
+| Papel | Empresa | E-mail |
+|---|---|---|
+| master | Altamira Indústria Metalúrgica | `teste@eixo.local` |
+| comum | Altamira Indústria Metalúrgica (entrou por convite) | `comum@eixo.local` |
+| master | Empresa B Compressores | `empresab@eixo.local` |
+| dev | global, sem empresa | `dev@eixo.local` |
+
+Regras (migração `002_papeis_auditoria.sql`): o cadastro sem convite cria uma empresa e o usuário vira master; com convite pendente para o e-mail, entra na empresa com o papel do convite. Limites por empresa: 1 master, 4 admin, 5 comum. Toda criação, alteração e exclusão em motores, coletores, regras, alertas, usuários, convites e empresa vai para a tabela `auditoria` com quem fez.
+
+Autenticação: confirmação de e-mail obrigatória; senha com mínimo 8 caracteres, maiúscula, minúscula, número e símbolo (validado no app e no Supabase); recuperação por link no e-mail (o código de 6 dígitos só funciona quando houver SMTP próprio com `{{ .Token }}` no modelo "Reset password"). Site URL do Auth apontando para `http://localhost:5173`.
 
 ## Rodar o app localmente
 
