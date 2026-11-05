@@ -11,6 +11,10 @@ Plataforma web para supervisão de motores elétricos: coleta corrente, temperat
 | `prototipos/supabase/` | `schema.sql` (banco), `teste.md` (dados e usuário de teste) |
 | `TCC_*.docx` | Documento base do trabalho |
 
+## Repositório complementar
+
+O coletor de campo (firmware ESP32, sensores e cases impressos) está em **[GLMiranda0/Coletor-eixo](https://github.com/GLMiranda0/Coletor-eixo)**. Ele envia as leituras para a função `ingest` deste projeto.
+
 ## Começar
 
 ```bash
