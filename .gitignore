@@ -1,0 +1,13 @@
+# dependências e builds
+node_modules/
+app/dist/
+
+# variáveis de ambiente (use app/.env.example como modelo)
+app/.env
+*.env.local
+*.local.md
+
+# sistema
+.DS_Store
+Thumbs.db
+~$*.docx

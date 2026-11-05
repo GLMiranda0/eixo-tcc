@@ -1,0 +1,687 @@
+<title>Eixo Protótipo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: app shell (sidebar + topbar + content) with a prototype switcher. Identity: electric cyan on deep navy, status colors reserved. */
+:root{
+  --bg:#F3F6F9; --surface:#FFFFFF; --surface-2:#EAF0F5; --fg:#0F1A28; --muted:#5A6B7E; --border:#D7DFE8;
+  --accent:#0891B2; --accent-2:#2563EB; --accent-ink:#FFFFFF; --accent-soft:#DDF4FA; --glow:rgba(8,145,178,.35);
+  --ok:#15803D; --ok-soft:#DCFCE7; --warn:#B45309; --warn-soft:#FEF3C7; --crit:#B91C1C; --crit-soft:#FEE2E2;
+  --s-temp:#EA580C; --s-corr:#0891B2; --s-tens:#7C3AED; --s-rot:#16A34A; --s-vib:#DB2777;
+  --grid:#E3E9F0; --shadow:0 10px 30px rgba(15,26,40,.08);
+  --display:"Sora",system-ui,sans-serif; --body:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0A1018; --surface:#111A25; --surface-2:#182434; --fg:#E7EEF5; --muted:#8C9DB2; --border:#223044;
+  --accent:#22D3EE; --accent-2:#60A5FA; --accent-ink:#06121A; --accent-soft:#0E2F3A; --glow:rgba(34,211,238,.35);
+  --ok:#4ADE80; --ok-soft:#0E2E1C; --warn:#FBBF24; --warn-soft:#3A2A05; --crit:#F87171; --crit-soft:#3E1414;
+  --grid:#1C2838; --shadow:0 10px 30px rgba(0,0,0,.35); color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0A1018; --surface:#111A25; --surface-2:#182434; --fg:#E7EEF5; --muted:#8C9DB2; --border:#223044;
+  --accent:#22D3EE; --accent-2:#60A5FA; --accent-ink:#06121A; --accent-soft:#0E2F3A; --glow:rgba(34,211,238,.35);
+  --ok:#4ADE80; --ok-soft:#0E2E1C; --warn:#FBBF24; --warn-soft:#3A2A05; --crit:#F87171; --crit-soft:#3E1414;
+  --grid:#1C2838; --shadow:0 10px 30px rgba(0,0,0,.35); color-scheme:dark }
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;line-height:1.5;transition:background .3s,color .3s}
+h1,h2,h3,h4{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:28px;font-weight:700} h2{font-size:20px;font-weight:700} h3{font-size:15px;font-weight:600}
+p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+input,select{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;width:100%}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--mono)} .num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+
+/* ---------- prototype switcher ---------- */
+.proto-bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;overflow-x:auto;padding-block:8px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:31;background:var(--surface)}
+.proto-bar .lbl{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap;margin-right:6px;font-weight:600}
+.tab{border:1px solid transparent;background:transparent;border-radius:999px;padding:6px 12px;white-space:nowrap;font-weight:500;color:var(--muted)}
+.tab:hover{background:var(--surface-2);color:var(--fg)}
+.tab[aria-selected="true"]{background:var(--accent-soft);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 30%,transparent)}
+.proto-bar .spacer{flex:1}
+
+/* ---------- buttons: the identity system ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:10px;padding:10px 16px;font-weight:600;border:1px solid transparent;transition:transform .15s,box-shadow .2s,background .2s,border-color .2s;position:relative;white-space:nowrap}
+.btn:active{transform:translateY(1px)}
+.btn svg{width:16px;height:16px;flex:none}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:var(--accent-ink);box-shadow:0 6px 18px var(--glow);overflow:hidden}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 10px 26px var(--glow)}
+.btn-primary::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);transform:translateX(-120%);animation:shine 3.2s ease-in-out infinite}
+.btn-hero{padding:14px 22px;font-size:15px;border-radius:12px}
+.btn-hero::before{content:"";position:absolute;inset:-4px;border-radius:16px;border:2px solid var(--accent);opacity:0;animation:ring 2.4s ease-out infinite}
+.btn-secondary{background:var(--surface);border-color:var(--border);color:var(--fg)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.btn-ghost{background:transparent;color:var(--muted)}
+.btn-ghost:hover{background:var(--surface-2);color:var(--fg)}
+.btn-danger{background:var(--crit-soft);color:var(--crit);border-color:color-mix(in srgb,var(--crit) 30%,transparent)}
+.btn-ok{background:var(--ok-soft);color:var(--ok);border-color:color-mix(in srgb,var(--ok) 30%,transparent)}
+.btn-sm{padding:6px 10px;font-size:12px;border-radius:8px}
+.btn[disabled]{opacity:.5;cursor:not-allowed;transform:none}
+@keyframes shine{0%,55%{transform:translateX(-120%)}85%,100%{transform:translateX(120%)}}
+@keyframes ring{0%{opacity:.7;transform:scale(.96)}100%{opacity:0;transform:scale(1.12)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pop{0%{transform:translateY(-8px) scale(.98);opacity:0}100%{transform:none;opacity:1}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- app shell ---------- */
+.screen{display:none}
+.screen.active{display:block}
+.shell{display:grid;grid-template-columns:232px 1fr;min-height:calc(100vh - 48px)}
+.side{background:var(--surface);border-right:1px solid var(--border);padding:18px 14px;display:flex;flex-direction:column;gap:6px}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 16px}
+.brand .word{font-family:var(--display);font-weight:800;font-size:20px;letter-spacing:-.03em}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;color:var(--muted);text-decoration:none;font-weight:500}
+.nav a svg{width:17px;height:17px}
+.nav a:hover{background:var(--surface-2);color:var(--fg)}
+.nav a.on{background:var(--accent-soft);color:var(--accent)}
+.nav .badge{margin-left:auto;background:var(--crit);color:#fff;font-size:11px;border-radius:999px;padding:1px 7px;font-weight:600}
+.side .foot{margin-top:auto;border-top:1px solid var(--border);padding-top:12px;font-size:12px;color:var(--muted)}
+.main{min-width:0;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.topbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.topbar .grow{flex:1;min-width:0}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--surface)}
+.pill .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);animation:blink 1.6s infinite}
+.pill.sim{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+.pill.ok{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.pill.warn{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.pill.crit{background:var(--crit-soft);color:var(--crit);border-color:transparent}
+.theme-toggle{display:inline-flex;border:1px solid var(--border);border-radius:999px;background:var(--surface);padding:3px}
+.theme-toggle button{border:0;background:transparent;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:600;color:var(--muted)}
+.theme-toggle button.on{background:var(--accent);color:var(--accent-ink)}
+
+/* ---------- cards & grid ---------- */
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))} .g3{grid-template-columns:repeat(3,minmax(0,1fr))} .g4{grid-template-columns:repeat(4,minmax(0,1fr))} .g5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;min-width:0}
+.card.pad0{padding:0;overflow:hidden}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.stat{display:flex;flex-direction:column;gap:4px}
+.stat .v{font-family:var(--display);font-size:26px;font-weight:700;letter-spacing:-.02em}
+.stat .u{font-size:13px;color:var(--muted);font-weight:500;margin-left:3px}
+.stripe{border-left:4px solid var(--border)}
+.stripe.ok{border-left-color:var(--ok)} .stripe.warn{border-left-color:var(--warn)} .stripe.crit{border-left-color:var(--crit)}
+
+/* ---------- gauges ---------- */
+.gauge{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px}
+.gauge svg{width:100%;max-width:150px;height:auto}
+.gauge .val{font-family:var(--display);font-size:22px;font-weight:700;margin-top:-30px}
+.gauge .lbl{font-size:12px;color:var(--muted);font-weight:500}
+.gauge .arc{transition:stroke-dashoffset .6s cubic-bezier(.2,.8,.2,1)}
+
+/* ---------- table ---------- */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:10px 14px;border-bottom:1px solid var(--border)}
+td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tr.row-link{cursor:pointer} tr.row-link:hover td{background:var(--surface-2)}
+.tbl-wrap{overflow-x:auto}
+
+/* ---------- charts ---------- */
+.chart{width:100%;height:auto;display:block}
+.chart text{font-family:var(--body);font-size:11px;fill:var(--muted)}
+.chart .gl{stroke:var(--grid);stroke-width:1}
+.chart .ln{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.chart .lim{stroke:var(--crit);stroke-width:1;stroke-dasharray:4 4}
+.chart .ar{opacity:.12}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:9px;overflow:hidden}
+.seg button{border:0;background:var(--surface);padding:6px 12px;font-size:12px;font-weight:600;color:var(--muted)}
+.seg button.on{background:var(--accent-soft);color:var(--accent)}
+
+/* ---------- alerts ---------- */
+.alert-item{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start;padding:14px;border-radius:12px;border:1px solid var(--border);background:var(--surface);cursor:pointer;transition:border-color .2s}
+.alert-item:hover,.alert-item.sel{border-color:var(--accent)}
+.sev{width:36px;height:36px;border-radius:10px;display:grid;place-items:center}
+.sev.crit{background:var(--crit-soft);color:var(--crit)} .sev.warn{background:var(--warn-soft);color:var(--warn)} .sev.ok{background:var(--ok-soft);color:var(--ok)}
+.sev svg{width:18px;height:18px}
+.toast{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));z-index:50;background:var(--surface);border:1px solid var(--crit);border-left-width:5px;border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);display:none;max-width:360px;animation:pop .35s ease-out}
+.toast.show{display:grid;grid-template-columns:auto 1fr;gap:10px}
+.steps{display:flex;flex-direction:column;gap:8px}
+.step{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:10px;border:1px solid var(--border)}
+.step .n{width:22px;height:22px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;font-size:12px;font-weight:700;flex:none}
+.step.done .n{background:var(--ok);color:#fff} .step.cur{border-color:var(--accent);background:var(--accent-soft)}
+
+/* ---------- option cards & toggles ---------- */
+.opt{display:flex;gap:12px;align-items:flex-start;padding:14px;border:1px solid var(--border);border-radius:12px;cursor:pointer;background:var(--surface);transition:border-color .2s,box-shadow .2s}
+.opt:hover{border-color:var(--accent)}
+.opt.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.opt .radio{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);flex:none;margin-top:2px;display:grid;place-items:center}
+.opt.on .radio{border-color:var(--accent)} .opt.on .radio::after{content:"";width:9px;height:9px;border-radius:50%;background:var(--accent)}
+.switch{position:relative;width:38px;height:22px;border-radius:999px;background:var(--border);border:0;flex:none;transition:background .2s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.switch.on{background:var(--accent)} .switch.on::after{transform:translateX(16px)}
+.ind-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--border);border-radius:10px}
+.ind-row .sw{width:10px;height:10px;border-radius:3px;flex:none}
+.ind-row .t{flex:1;min-width:0} .ind-row .t small{display:block;color:var(--muted)}
+pre.code{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-family:var(--mono);font-size:12px;line-height:1.55;overflow-x:auto;margin:0;color:var(--fg)}
+.field{display:flex;flex-direction:column;gap:5px} .field label{font-size:12px;font-weight:600;color:var(--muted)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.copy{display:flex;gap:8px;align-items:center}
+.copy input{font-family:var(--mono);font-size:12px}
+
+/* ---------- login ---------- */
+.login{min-height:calc(100vh - 48px);display:grid;grid-template-columns:1.1fr 1fr}
+.login .hero{background:radial-gradient(1200px 600px at -10% 110%,color-mix(in srgb,var(--accent) 22%,transparent),transparent 60%),var(--surface);border-right:1px solid var(--border);padding:48px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+.login .hero h1{font-size:40px;line-height:1.1;max-width:14ch}
+.login .hero .big-logo{width:120px;height:120px}
+.login .form{display:flex;align-items:center;justify-content:center;padding:32px}
+.login .form .card{width:min(420px,100%);padding:28px;display:flex;flex-direction:column;gap:14px}
+.ring-bg{position:absolute;right:-120px;bottom:-120px;width:420px;height:420px;border-radius:50%;border:40px solid color-mix(in srgb,var(--accent) 10%,transparent);animation:spin 40s linear infinite;border-top-color:color-mix(in srgb,var(--accent) 35%,transparent)}
+.divider{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--border)}
+
+/* ---------- brand page ---------- */
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.sw-card{border-radius:12px;border:1px solid var(--border);overflow:hidden}
+.sw-card .c{height:56px} .sw-card .m{padding:8px 10px;font-size:11px;font-family:var(--mono)}
+.sw-card .m b{display:block;font-family:var(--body);font-size:12px}
+.logo-tile{display:grid;place-items:center;border-radius:14px;padding:28px;gap:10px}
+.logo-tile.dark{background:#0A1018;color:#E7EEF5} .logo-tile.light{background:#fff;color:#0F1A28;border:1px solid var(--border)}
+.wordmark{font-family:var(--display);font-weight:800;letter-spacing:-.04em;font-size:36px;display:flex;align-items:center;gap:8px}
+
+/* ---------- tutorial ---------- */
+.progress{height:8px;border-radius:999px;background:var(--surface-2);overflow:hidden}
+.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));border-radius:999px;transition:width .5s}
+.path{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.nm{border:1px dashed var(--border);border-radius:12px;padding:14px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;min-height:150px;color:var(--muted)}
+.nm b{color:var(--fg);font-size:13px}
+.banner{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:12px 14px;border-radius:12px;border:1px solid color-mix(in srgb,var(--warn) 45%,transparent);background:var(--warn-soft);margin-bottom:14px}
+.banner .sev{width:32px;height:32px}
+.banner.info{border-color:color-mix(in srgb,var(--accent) 45%,transparent);background:var(--accent-soft)}
+.phase{display:grid;grid-template-columns:auto 1fr;gap:12px;padding:12px;border:1px solid var(--border);border-radius:12px;align-items:start}
+.phase.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.phase .ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--surface-2);font-family:var(--display);font-weight:700}
+.phase.on .ic{background:var(--accent);color:var(--accent-ink)}
+.chart .rib{opacity:.18}
+.chart .base{fill:none;stroke-width:1.5;stroke-dasharray:2 3;opacity:.8}
+.score{display:flex;align-items:baseline;gap:6px;font-family:var(--display);font-weight:700;font-size:26px}
+.score small{font-family:var(--body);font-weight:500;font-size:12px;color:var(--muted)}
+.path .pt{border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center;font-size:12px;font-weight:600;color:var(--muted);background:var(--surface);transition:all .2s}
+.path .pt .ic{width:28px;height:28px;border-radius:50%;margin:0 auto 6px;display:grid;place-items:center;background:var(--surface-2);font-family:var(--display)}
+.path .pt.done{color:var(--ok)} .path .pt.done .ic{background:var(--ok);color:#fff}
+.path .pt.cur{border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)} .path .pt.cur .ic{background:var(--accent);color:var(--accent-ink)}
+input[type=range]{accent-color:var(--accent);padding:0}
+.load-wrap{display:flex;flex-direction:column;gap:8px}
+.load-wrap .scale{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+
+@media (max-width:900px){.shell{grid-template-columns:1fr}.side{display:none}.g4,.g5,.g3{grid-template-columns:repeat(2,minmax(0,1fr))}.login{grid-template-columns:1fr}.login .hero{padding:28px}.login .hero h1{font-size:30px}.path{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (max-width:520px){.g2,.g3,.g4,.g5{grid-template-columns:1fr}.alert-item,.banner{grid-template-columns:auto 1fr}.path{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22D3EE"/><stop offset="1" stop-color="#2563EB"/></linearGradient>
+    <symbol id="logo" viewBox="0 0 64 64">
+      <circle cx="32" cy="32" r="24" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-dasharray="118 40" transform="rotate(-210 32 32)"/>
+      <path d="M12 34h10l4-10 6 20 5-14 3 4h12" fill="none" stroke="url(#lg)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="54" cy="12" r="5" fill="url(#lg)"/>
+    </symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="i-motor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 17V11a6 6 0 0 1 12 0v6l2 2H4zM10 21h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-hist" viewBox="0 0 24 24"><path d="M3 20h18M5 16l4-5 4 3 7-8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chip" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="i-route" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="18" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 7h7a3 3 0 0 1 0 6H9a3 3 0 0 0 0 6h7" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 5v14l11-7z" fill="currentColor"/></symbol>
+    <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3 2 21h20zM12 10v5M12 18h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-palette" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="10" r="1.5" fill="currentColor"/><circle cx="12" cy="7" r="1.5" fill="currentColor"/><circle cx="16" cy="10" r="1.5" fill="currentColor"/></symbol>
+  </defs>
+</svg>
+
+<!-- ============ PROTOTYPE SWITCHER ============ -->
+<nav class="proto-bar" aria-label="Telas do protótipo">
+  <span class="lbl">Protótipo</span>
+  <button class="tab" data-go="marca">Identidade</button>
+  <button class="tab" data-go="login">Login</button>
+  <button class="tab" data-go="painel">Painel</button>
+  <button class="tab" data-go="motor">Motor</button>
+  <button class="tab" data-go="alertas">Alertas</button>
+  <button class="tab" data-go="coletor">Coletor</button>
+  <button class="tab" data-go="tutorial">Tutorial</button>
+  <span class="spacer"></span>
+  <div class="theme-toggle" role="group" aria-label="Tema">
+    <button id="th-light" type="button">Claro</button>
+    <button id="th-sys" type="button">Auto</button>
+    <button id="th-dark" type="button">Escuro</button>
+  </div>
+</nav>
+
+<!-- ============ SCREEN: IDENTIDADE ============ -->
+<section class="screen" id="s-marca">
+  <div class="main" style="max-width:1100px;margin:0 auto">
+    <div class="topbar"><div class="grow"><p class="eyebrow">Identidade visual</p><h1>Eixo</h1><p class="muted">O eixo é o centro do motor. A marca fica no centro da operação: enxerga, interpreta e avisa.</p></div></div>
+
+    <div class="grid g2" style="margin-bottom:14px">
+      <div class="logo-tile dark"><svg class="big-logo" width="96" height="96"><use href="#logo"/></svg><div class="wordmark">eixo</div><p class="muted" style="font-size:12px">Fundo escuro</p></div>
+      <div class="logo-tile light"><svg width="96" height="96"><use href="#logo"/></svg><div class="wordmark">eixo</div><p class="muted" style="font-size:12px">Fundo claro</p></div>
+    </div>
+
+    <div class="grid g3" style="margin-bottom:14px">
+      <div class="card"><p class="eyebrow">Conceito do símbolo</p><h3 style="margin:6px 0">Anel + pulso</h3><p class="muted">O anel aberto é o rotor e também um ponteiro de medidor. A linha que atravessa é o sinal do sensor em tempo real. O ponto no canto é o alerta.</p></div>
+      <div class="card"><p class="eyebrow">Tagline</p><h3 style="margin:6px 0">"Seus motores, sob vigilância inteligente."</h3><p class="muted">Curta, em português, foca no benefício e não na tecnologia.</p></div>
+      <div class="card"><p class="eyebrow">Nomes alternativos</p><h3 style="margin:6px 0">Rotorly · TorqWatch · Vigia</h3><p class="muted">Caso prefiram um nome em inglês. "Eixo" foi escolhido por ser curto, pronunciável e ter domínio provável (eixo.app).</p></div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-h"><h3>Paleta</h3><span class="muted">Troque o tema no topo para ver as duas versões</span></div>
+      <div class="swatches">
+        <div class="sw-card"><div class="c" style="background:var(--accent)"></div><div class="m"><b>Acento</b>ciano elétrico</div></div>
+        <div class="sw-card"><div class="c" style="background:var(--accent-2)"></div><div class="m"><b>Acento 2</b>azul (gradiente)</div></div>
+        <div class="sw-card"><div class="c" style="background:var(--bg);border-bottom:1px solid var(--border)"></div><div class="m"><b>Fundo</b>frio, leve azul</div></div>
+        <div class="sw-card"><div class="c" style="background:var(--surface);border-bottom:1px solid var(--border)"></div><div class="m"><b>Superfície</b>cards</div></div>
+        <div class="sw-card"><div class="c" style="background:var(--fg)"></div><div class="m"><b>Texto</b>navy / off-white</div></div>
+        <div class="sw-card"><div class="c" style="background:var(--ok)"></div><div class="m"><b>Normal</b>reservado p/ status</div></div>
+        <div class="sw-card"><div class="c" style="background:var(--warn)"></div><div class="m"><b>Atenção</b>reservado p/ status</div></div>
+        <div class="sw-card"><div class="c" style="background:var(--crit)"></div><div class="m"><b>Crítico</b>reservado p/ status</div></div>
+      </div>
+      <p class="muted" style="margin-top:10px;font-size:12px">Sensores têm cores fixas nos gráficos, nunca reaproveitadas para status: <span style="color:var(--s-temp)">temperatura</span>, <span style="color:var(--s-corr)">corrente</span>, <span style="color:var(--s-tens)">tensão</span>, <span style="color:var(--s-rot)">rotação</span>, <span style="color:var(--s-vib)">vibração</span>.</p>
+    </div>
+
+    <div class="grid g2">
+      <div class="card">
+        <div class="card-h"><h3>Botões</h3></div>
+        <div class="row" style="margin-bottom:12px"><button class="btn btn-primary btn-hero"><svg><use href="#i-play"/></svg>Ação principal (destaque)</button></div>
+        <div class="row" style="margin-bottom:12px"><button class="btn btn-primary">Primário</button><button class="btn btn-secondary">Secundário</button><button class="btn btn-ghost">Discreto</button></div>
+        <div class="row"><button class="btn btn-ok"><svg><use href="#i-check"/></svg>Reconhecer</button><button class="btn btn-danger">Parar motor</button><button class="btn btn-primary" disabled>Desabilitado</button></div>
+        <p class="muted" style="margin-top:12px;font-size:12px">O botão principal de cada tela carrega gradiente, brilho que passa a cada 3 s e um anel que pulsa. Nenhum outro botão anima: o contraste é o que guia o olho.</p>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>Tipografia</h3></div>
+        <p style="font-family:var(--display);font-size:26px;font-weight:700">Sora para títulos e números</p>
+        <p style="font-size:14px;margin:6px 0">IBM Plex Sans para texto corrido, formulários e tabelas. Legível em telas de chão de fábrica.</p>
+        <p class="mono" style="font-size:12px;color:var(--muted)">IBM Plex Mono para payloads, tokens e endpoints: {"motor":"M-01","rpm":1745}</p>
+        <div class="row" style="margin-top:12px"><span class="pill ok"><span class="dot"></span>Online</span><span class="pill warn">Atenção</span><span class="pill crit">Crítico</span><span class="pill sim">Modo simulação</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SCREEN: LOGIN ============ -->
+<section class="screen" id="s-login">
+  <div class="login">
+    <div class="hero">
+      <div class="ring-bg" aria-hidden="true"></div>
+      <div class="brand" style="padding:0"><svg width="36" height="36"><use href="#logo"/></svg><span class="word">eixo</span></div>
+      <div>
+        <p class="eyebrow" style="margin-bottom:10px">Supervisão de motores elétricos</p>
+        <h1>Seus motores, sob vigilância inteligente.</h1>
+        <p class="muted" style="margin-top:14px;max-width:46ch">Temperatura, corrente, tensão, rotação e vibração em tempo real. Alertas com a causa provável e a ação corretiva. Funciona com o coletor Eixo (ESP32) ou com o coletor que você já tem.</p>
+      </div>
+      <div class="row muted" style="font-size:12px"><span>POST HTTPS</span>·<span>MQTT</span>·<span>ISO 10816 / IEC 60034</span></div>
+    </div>
+    <div class="form">
+      <div class="card">
+        <h2>Entrar</h2>
+        <div class="field"><label for="l-email">E-mail</label><input id="l-email" type="email" placeholder="voce@empresa.com.br"></div>
+        <div class="field"><label for="l-pass">Senha</label><input id="l-pass" type="password" placeholder="••••••••"></div>
+        <button class="btn btn-primary btn-hero" data-go="painel">Entrar na plataforma<svg><use href="#i-arrow"/></svg></button>
+        <div class="divider">ou</div>
+        <button class="btn btn-secondary" data-go="tutorial"><svg><use href="#i-route"/></svg>Explorar em modo simulação</button>
+        <p class="muted" style="font-size:12px;text-align:center">O modo simulação não precisa de hardware. Você percorre o Caminho de Tutorial com um motor virtual.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ APP SHELL (painel, motor, alertas, coletor, tutorial) ============ -->
+<section class="screen" id="s-app">
+  <div class="shell">
+    <aside class="side">
+      <div class="brand"><svg width="30" height="30"><use href="#logo"/></svg><span class="word">eixo</span></div>
+      <nav class="nav" aria-label="Principal">
+        <a href="#painel" data-go="painel"><svg><use href="#i-grid"/></svg>Visão geral</a>
+        <a href="#motor" data-go="motor"><svg><use href="#i-motor"/></svg>Motores</a>
+        <a href="#alertas" data-go="alertas"><svg><use href="#i-bell"/></svg>Alertas<span class="badge" id="alert-count">2</span></a>
+        <a href="#coletor" data-go="coletor"><svg><use href="#i-chip"/></svg>Coletor</a>
+        <a href="#tutorial" data-go="tutorial"><svg><use href="#i-route"/></svg>Caminho de Tutorial</a>
+      </nav>
+      <div class="foot">Altamira Indústria Metalúrgica<br><span class="mono">plano Starter · 3 motores</span></div>
+    </aside>
+
+    <div class="main">
+      <!-- ---------- PAINEL ---------- -->
+      <div class="view" id="v-painel">
+        <div class="topbar"><div class="grow"><p class="eyebrow">Visão geral</p><h1>Bom dia, Gabriel</h1></div><span class="pill sim" id="sim-pill">Modo simulação</span><span class="pill"><span class="dot"></span>Coletor online · <span class="num" id="last-seen">há 1 s</span></span><button class="btn btn-primary" data-go="motor"><svg><use href="#i-play"/></svg>Abrir motor M-01</button></div>
+
+        <div class="grid g4" style="margin-bottom:14px">
+          <div class="card stripe ok"><div class="stat"><span class="eyebrow">Motores monitorados</span><span class="v num">3</span><span class="muted">2 normais · 1 em atenção</span></div></div>
+          <div class="card stripe crit"><div class="stat"><span class="eyebrow">Alertas ativos</span><span class="v num" id="kpi-alerts">2</span><span class="muted">1 crítico · 1 atenção</span></div></div>
+          <div class="card stripe"><div class="stat"><span class="eyebrow">Leituras hoje</span><span class="v num" id="kpi-reads">41 280</span><span class="muted">1 Hz por sensor</span></div></div>
+          <div class="card stripe"><div class="stat"><span class="eyebrow">Disponibilidade 30 d</span><span class="v num">99,6<span class="u">%</span></span><span class="muted">2 h 51 min parado</span></div></div>
+        </div>
+
+        <div class="grid" style="grid-template-columns:1.4fr 1fr;margin-bottom:14px">
+          <div class="card pad0">
+            <div class="tbl-wrap"><table>
+              <thead><tr><th>Motor</th><th>Status</th><th>Corrente</th><th>Temp.</th><th>Vibração</th><th>Rotação</th><th>Modelo</th><th></th></tr></thead>
+              <tbody>
+                <tr class="row-link" data-go="motor"><td><b>M-01</b><br><span class="muted">Bomba centrífuga · coletor Eixo</span></td><td><span class="pill warn" id="m1-pill">Atenção</span></td><td class="num" id="m1-c">9,4 A</td><td class="num" id="m1-t">58 °C</td><td class="num" id="m1-v">2,6 mm/s</td><td class="muted">não medida</td><td><span class="muted">Aprendendo · 4/14 d</span></td><td><svg width="16" height="16" style="color:var(--muted)"><use href="#i-arrow"/></svg></td></tr>
+                <tr class="row-link"><td><b>M-02</b><br><span class="muted">Compressor · coletor próprio (envia rpm)</span></td><td><span class="pill ok">Normal</span></td><td class="num">14,1 A</td><td class="num">51 °C</td><td class="num">1,8 mm/s</td><td class="num">3 480 rpm</td><td><span class="pill ok">Base aprendida</span></td><td><svg width="16" height="16" style="color:var(--muted)"><use href="#i-arrow"/></svg></td></tr>
+                <tr class="row-link"><td><b>M-03</b><br><span class="muted">Esteira com inversor · coletor Eixo</span></td><td><span class="pill ok">Normal</span></td><td class="num">6,2 A</td><td class="num">44 °C</td><td class="num">1,2 mm/s</td><td class="muted">não medida</td><td><span class="pill warn" title="Aplicação multispeed sem leitura de rotação">⚠ Multispeed s/ rpm</span></td><td><svg width="16" height="16" style="color:var(--muted)"><use href="#i-arrow"/></svg></td></tr>
+              </tbody></table></div>
+          </div>
+          <div class="card">
+            <div class="card-h"><h3>Alertas recentes</h3><button class="btn btn-ghost btn-sm" data-go="alertas">Ver todos</button></div>
+            <div class="steps">
+              <div class="alert-item" data-go="alertas"><div class="sev crit"><svg><use href="#i-warn"/></svg></div><div><b>M-01 · Vibração acima da zona C</b><br><span class="muted">4,7 mm/s com corrente 12 % acima da média · há 3 min</span></div></div>
+              <div class="alert-item" data-go="alertas"><div class="sev warn"><svg><use href="#i-warn"/></svg></div><div><b>M-01 · Corrente em tendência de alta</b><br><span class="muted">+8 % em 10 min, correlacionada com rotação · há 11 min</span></div></div>
+              <div class="alert-item" style="opacity:.7"><div class="sev ok"><svg><use href="#i-check"/></svg></div><div><b>M-03 · Reconhecido por Gabriel</b><br><span class="muted">Temperatura voltou a 44 °C · ontem 16:40</span></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><h3>M-01 · últimos 60 s</h3><div class="legend" id="lg-live"></div></div>
+          <svg class="chart" id="ch-live" viewBox="0 0 800 200" role="img" aria-label="Corrente e vibração nos últimos 60 segundos"></svg>
+        </div>
+      </div>
+
+      <!-- ---------- MOTOR ---------- -->
+      <div class="view" id="v-motor" hidden>
+        <div class="topbar"><div class="grow"><p class="eyebrow">Motores › M-01</p><h1>Bomba centrífuga · bancada</h1><p class="muted">WEG W22 1 cv · 220 V · 4 polos · 1 740 rpm nominal · coletor Eixo ESP32 #A3F1</p></div><span class="pill warn" id="m-pill">Atenção</span><div class="seg" id="app-type" title="Tipo de aplicação"><button class="on" data-app="fixa">Velocidade fixa</button><button data-app="multi">Multispeed</button></div><button class="btn btn-primary" data-go="alertas"><svg><use href="#i-bell"/></svg>Ver alerta ativo</button></div>
+
+        <div class="banner" id="ms-banner" hidden><div class="sev warn"><svg><use href="#i-warn"/></svg></div><div><b>Aplicação multispeed sem leitura de rotação.</b><br><span class="muted">O coletor Eixo não mede rpm. O modelo assume velocidade nominal (1 740 rpm): ao variar a velocidade, a vibração muda e pode gerar alertas falsos ou mascarar falhas. Envie a chave <span class="mono">"rot"</span> no payload (sensor Hall, encoder ou saída do inversor) e o Eixo passa a aprender uma linha de base por faixa de velocidade.</span></div><button class="btn btn-secondary btn-sm" data-go="coletor">Configurar rotação</button></div>
+        <div class="banner info" id="rot-banner" hidden><div class="sev ok"><svg><use href="#i-check"/></svg></div><div><b>Rotação recebida do coletor.</b><br><span class="muted">O modelo separa a linha de base por faixa de velocidade e a vibração é comparada com o normal daquela faixa.</span></div><span class="pill ok">Multispeed suportado</span></div>
+
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-h"><h3>Tempo real</h3><span class="muted num">atualizado <span id="m-upd">há 1 s</span></span></div>
+          <div class="grid g5" id="gauges"></div>
+        </div>
+
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-h"><h3>Histórico</h3>
+            <div class="row">
+              <div class="seg" id="hist-range"><button class="on" data-r="1h">1 h</button><button data-r="24h">24 h</button><button data-r="7d">7 d</button><button data-r="30d">30 d</button></div>
+              <div class="seg" id="hist-sensor"><button class="on" data-s="corr">Corrente</button><button data-s="vib">Vibração</button><button data-s="temp">Temperatura</button><button data-s="rot">Rotação</button><button data-s="tens">Tensão</button></div>
+              <button class="btn btn-ghost btn-sm">Exportar CSV</button>
+            </div>
+          </div>
+          <svg class="chart" id="ch-hist" viewBox="0 0 800 240" role="img" aria-label="Histórico do sensor selecionado"></svg>
+          <p class="muted" style="font-size:12px;margin-top:6px">Faixa colorida = "normal" aprendido para este motor (média ± 2σ, por hora do dia). Tracejado vermelho = limite fixo da fase inicial. Faixa cinza = período com alerta ativo.</p>
+        </div>
+
+        <div class="grid g2" style="margin-bottom:14px">
+          <div class="card"><div class="card-h"><h3>Motor de diagnóstico</h3><span class="muted num">4 de 14 dias de aprendizado</span></div>
+            <div class="progress" style="margin-bottom:12px"><i style="width:29%"></i></div>
+            <div class="steps">
+              <div class="phase on"><div class="ic">1</div><div><b>Limites fixos</b> <span class="pill warn" style="margin-left:6px">ativo agora</span><br><span class="muted">ISO 10816-3 para vibração, % da corrente nominal, temperatura da classe de isolação. Vale enquanto o motor ainda não tem dados suficientes.</span></div></div>
+              <div class="phase"><div class="ic">2</div><div><b>Linha de base aprendida</b> <span class="muted" style="margin-left:6px">em 10 dias</span><br><span class="muted">O modelo aprende o normal deste motor: assinatura de vibração, corrente por carga típica, aquecimento esperado, variação por turno. Alerta quando o comportamento sai do envelope aprendido, mesmo abaixo dos limites fixos.</span></div></div>
+              <div class="phase"><div class="ic">3</div><div><b>Diagnóstico por padrão</b> <span class="muted" style="margin-left:6px">após 30 dias</span><br><span class="muted">Combina o desvio de cada grandeza em um padrão nomeado (sobrecarga, rolamento, desalinhamento, ventilação) e sugere a ação corretiva. Um LLM só escreve a explicação; a detecção é estatística.</span></div></div>
+            </div>
+            <p class="muted" style="font-size:12px;margin-top:10px">Pré-requisito do aprendizado: velocidade constante ou rotação medida. Sem isso o modelo aprende só a velocidade nominal e avisa.</p></div>
+          <div class="card"><div class="card-h"><h3>Correlação atual</h3><span class="pill warn">Padrão: sobrecarga</span></div>
+            <div class="row" style="margin-bottom:10px"><div class="score"><span id="anom-score">3,1</span><small>σ · índice de anomalia</small></div><span class="muted" style="font-size:12px">acima de 3σ por 2 min dispara alerta</span></div>
+            <p class="muted" style="margin-bottom:10px">O motor cruza as grandezas antes de alertar. Picos isolados são descartados como provável falha de sensor.</p>
+            <div class="steps">
+              <div class="step done"><span class="n"><svg width="12" height="12"><use href="#i-check"/></svg></span><div><b>Corrente ↑ 12 %</b><br><span class="muted">2,4σ acima do normal aprendido para este horário</span></div></div>
+              <div class="step done"><span class="n"><svg width="12" height="12"><use href="#i-check"/></svg></span><div><b>Vibração ↑ acompanhando</b><br><span class="muted">mesma janela de tempo, sem pico isolado</span></div></div>
+              <div class="step"><span class="n">3</span><div><b>Temperatura estável</b><br><span class="muted">ainda não confirmou. Reavaliação em 2 min</span></div></div>
+              <div class="step" id="corr-rot"><span class="n">–</span><div><b>Rotação não medida</b><br><span class="muted">assumida nominal (1 740 rpm). Sobrecarga é o padrão mais provável, mas variação de velocidade não pode ser descartada.</span></div></div>
+            </div></div>
+        </div>
+      </div>
+
+      <!-- ---------- ALERTAS ---------- -->
+      <div class="view" id="v-alertas" hidden>
+        <div class="topbar"><div class="grow"><p class="eyebrow">Alertas</p><h1>2 alertas ativos</h1></div><div class="seg"><button class="on">Ativos</button><button>Reconhecidos</button><button>Todos</button></div></div>
+        <div class="grid" style="grid-template-columns:1fr 1.2fr">
+          <div class="steps">
+            <div class="alert-item sel"><div class="sev crit"><svg><use href="#i-warn"/></svg></div><div><b>Vibração acima da zona C</b><br><span class="muted">M-01 · 4,7 mm/s · há 3 min</span></div><span class="pill crit">Crítico</span></div>
+            <div class="alert-item"><div class="sev warn"><svg><use href="#i-warn"/></svg></div><div><b>Corrente em tendência de alta</b><br><span class="muted">M-01 · +8 % em 10 min · há 11 min</span></div><span class="pill warn">Atenção</span></div>
+            <div class="alert-item" style="opacity:.65"><div class="sev ok"><svg><use href="#i-check"/></svg></div><div><b>Temperatura elevada</b><br><span class="muted">M-03 · reconhecido ontem 16:40</span></div><span class="pill ok">Resolvido</span></div>
+          </div>
+          <div class="card stripe crit">
+            <p class="eyebrow">Diagnóstico</p>
+            <h2 style="margin:4px 0 10px">Sobrecarga mecânica provável</h2>
+            <p class="muted" style="margin-bottom:14px">Vibração atingiu 4,7 mm/s (zona D da ISO 10816-3) e corrente subiu junto, 12 % acima do normal aprendido para este horário. O padrão corresponde a aumento de carga no eixo, não a falha de sensor. Rotação não é medida neste coletor: o diagnóstico assume velocidade nominal.</p>
+            <div class="grid g3" style="margin-bottom:14px">
+              <div class="stat"><span class="eyebrow">Vibração</span><span class="v num" style="color:var(--crit)">4,7<span class="u">mm/s</span></span><span class="muted">2,3× o normal deste motor</span></div>
+              <div class="stat"><span class="eyebrow">Corrente</span><span class="v num">11,8<span class="u">A</span></span><span class="muted">+12 % vs. base aprendida</span></div>
+              <div class="stat"><span class="eyebrow">Confiança</span><span class="v num">78<span class="u">%</span></span><span class="muted">fase 1 · limites fixos</span></div>
+            </div>
+            <p class="eyebrow" style="margin-bottom:8px">Ação corretiva sugerida</p>
+            <div class="steps" style="margin-bottom:14px">
+              <div class="step cur"><span class="n">1</span><div><b>Reduzir a carga mecânica aplicada ao eixo</b><br><span class="muted">Na bancada: afrouxar o freio de carga até a vibração voltar abaixo de 2,8 mm/s.</span></div></div>
+              <div class="step"><span class="n">2</span><div><b>Verificar alinhamento e rolamentos</b><br><span class="muted">Se a vibração persistir com carga normal.</span></div></div>
+              <div class="step"><span class="n">3</span><div><b>Parar o motor</b><br><span class="muted">Se a corrente ultrapassar 125 % de In por mais de 30 s.</span></div></div>
+            </div>
+            <div class="row"><button class="btn btn-primary btn-hero" id="btn-ack"><svg><use href="#i-check"/></svg>Reconhecer e registrar ação</button><button class="btn btn-danger">Parar motor</button><button class="btn btn-ghost">Silenciar 15 min</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---------- COLETOR ---------- -->
+      <div class="view" id="v-coletor" hidden>
+        <div class="topbar"><div class="grow"><p class="eyebrow">Coletor › M-01</p><h1>Configurar coletor</h1><p class="muted">Escolha o hardware, o protocolo e quais indicadores ele envia. O painel se adapta ao que o coletor possui.</p></div><button class="btn btn-primary"><svg><use href="#i-check"/></svg>Salvar e testar conexão</button></div>
+
+        <div class="grid g2" style="margin-bottom:14px">
+          <div class="card">
+            <div class="card-h"><h3>1. Hardware</h3></div>
+            <div class="steps">
+              <label class="opt on" id="hw-eixo"><span class="radio"></span><div><b>Coletor Eixo (ESP32)</b><br><span class="muted">Firmware pronto. Mede corrente, temperatura e vibração. Não mede rotação nem tensão: você pode enviá-las de outra fonte no mesmo payload.</span></div></label>
+              <label class="opt" id="hw-own"><span class="radio"></span><div><b>Coletor próprio ou de terceiro</b><br><span class="muted">Qualquer dispositivo que faça POST HTTPS ou publique em MQTT. Você marca o que ele mede; tudo que chegar é computado.</span></div></label>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-h"><h3>2. Protocolo</h3></div>
+            <div class="steps">
+              <label class="opt on" id="pr-post"><span class="radio"></span><div><b>POST HTTPS</b><br><span class="muted">Simples, funciona em qualquer rede. Recomendado para começar.</span></div></label>
+              <label class="opt" id="pr-mqtt"><span class="radio"></span><div><b>MQTT</b><br><span class="muted">Menor latência e menor consumo. Broker Eixo ou o seu.</span></div></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid g2" style="margin-bottom:14px">
+          <div class="card">
+            <div class="card-h"><h3>3. Indicadores</h3><span class="muted" id="ind-count">3 de 5 ativos</span></div>
+            <div class="steps" id="ind-list"></div>
+            <div class="banner" id="ind-hint" style="margin:10px 0 0"><div class="sev warn"><svg><use href="#i-warn"/></svg></div><div><span class="muted" style="font-size:12px">Sem <b>rotação</b>, o modelo só é confiável em motores de velocidade fixa. Marque a aplicação como multispeed no cadastro do motor para o Eixo avisar no painel.</span></div></div>
+            <button class="btn btn-ghost btn-sm" style="margin-top:10px">+ Indicador personalizado</button>
+          </div>
+          <div class="card">
+            <div class="card-h"><h3>4. Credenciais e payload</h3></div>
+            <div class="field" style="margin-bottom:10px"><label>Endpoint</label><div class="copy"><input readonly id="endpoint" value="https://api.eixo.app/v1/ingest"><button class="btn btn-secondary btn-sm" data-copy="endpoint">Copiar</button></div></div>
+            <div class="field" style="margin-bottom:10px"><label id="topic-lbl">Token do dispositivo (header X-Device-Token)</label><div class="copy"><input readonly id="token" value="eixo_dev_7f3a…c91e"><button class="btn btn-secondary btn-sm">Rotacionar</button></div></div>
+            <p class="eyebrow" style="margin:8px 0 6px">Exemplo de mensagem</p>
+            <pre class="code" id="payload"></pre>
+          </div>
+        </div>
+        <div class="card"><div class="card-h"><h3>Teste de conexão</h3><span class="pill ok"><span class="dot"></span>Última mensagem há 1 s</span></div>
+          <div class="row muted" style="font-size:12px"><span class="mono">2026-11-04 19:58:12</span><span>·</span><span>200 OK</span><span>·</span><span class="mono" id="last-msg">{"temp":58.1,"corr":9.4,"vib":2.6}</span></div></div>
+      </div>
+
+      <!-- ---------- TUTORIAL ---------- -->
+      <div class="view" id="v-tutorial" hidden>
+        <div class="topbar"><div class="grow"><p class="eyebrow">Caminho de Tutorial · modo simulação</p><h1>Aprenda com um motor virtual</h1><p class="muted">Nenhum hardware é necessário. Ao final, você pode trocar o motor virtual por um real sem perder a configuração.</p></div><span class="pill sim">Motor virtual M-SIM</span></div>
+
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-h"><h3>Progresso</h3><span class="muted num" id="tut-pct">0 de 6 etapas</span></div>
+          <div class="progress" style="margin-bottom:14px"><i id="tut-bar" style="width:0%"></i></div>
+          <div class="path" id="tut-path"></div>
+        </div>
+
+        <div class="grid" style="grid-template-columns:1.2fr 1fr">
+          <div class="card" id="tut-card">
+            <p class="eyebrow" id="tut-step-lbl">Etapa 1 de 6</p>
+            <h2 id="tut-title" style="margin:4px 0 8px"></h2>
+            <p class="muted" id="tut-text" style="margin-bottom:14px"></p>
+            <div id="tut-body" style="margin-bottom:16px"></div>
+            <div class="row"><button class="btn btn-ghost" id="tut-prev">Voltar</button><button class="btn btn-primary btn-hero" id="tut-next">Próxima etapa<svg><use href="#i-arrow"/></svg></button></div>
+          </div>
+          <div class="card">
+            <div class="card-h"><h3>Motor virtual</h3><span class="pill" id="sim-status"><span class="dot"></span>Normal</span></div>
+            <div class="grid g2" id="sim-gauges" style="margin-bottom:12px"></div>
+            <div class="load-wrap">
+              <label for="load" style="font-size:12px;font-weight:600;color:var(--muted)">Carga aplicada ao eixo: <span class="num" id="load-val">62 %</span></label>
+              <input type="range" id="load" min="0" max="100" value="62">
+              <div class="scale"><span>vazio</span><span>nominal</span><span>sobrecarga</span></div>
+            </div>
+            <p class="muted" style="font-size:12px;margin-top:10px">Reproduz o ensaio da bancada: ao subir a carga, corrente e rotação sobem e a vibração passa da zona B para C e D.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="toast" id="toast" role="status"><div class="sev crit"><svg><use href="#i-warn"/></svg></div><div><b id="toast-t">Alerta crítico</b><br><span class="muted" id="toast-m"></span><div class="row" style="margin-top:8px"><button class="btn btn-primary btn-sm" data-go="alertas">Ver ação corretiva</button><button class="btn btn-ghost btn-sm" id="toast-x">Fechar</button></div></div></div>
+
+<script>
+(function(){
+  const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+  /* ---------- theme ---------- */
+  const root=document.documentElement;
+  function setTheme(t){ if(t==='sys') root.removeAttribute('data-theme'); else root.setAttribute('data-theme',t);
+    try{localStorage.setItem('eixo-theme',t)}catch(e){}
+    ['light','sys','dark'].forEach(k=>$('#th-'+k).classList.toggle('on',k===t)); }
+  ['light','sys','dark'].forEach(k=>$('#th-'+k).addEventListener('click',()=>setTheme(k)));
+  let saved='sys'; try{saved=localStorage.getItem('eixo-theme')||'sys'}catch(e){} setTheme(saved);
+
+  /* ---------- routing ---------- */
+  const appViews=['painel','motor','alertas','coletor','tutorial'];
+  function go(name){
+    if(!['marca','login',...appViews].includes(name)) name='marca';
+    $$('.screen').forEach(s=>s.classList.remove('active'));
+    if(appViews.includes(name)){ $('#s-app').classList.add('active'); $$('.view').forEach(v=>v.hidden=('v-'+name)!==v.id); $$('.nav a').forEach(a=>a.classList.toggle('on',a.dataset.go===name)); }
+    else $('#s-'+name).classList.add('active');
+    $$('.proto-bar .tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.go===name));
+    if(location.hash!=='#'+name) history.replaceState(null,'','#'+name);
+    window.scrollTo({top:0});
+  }
+  document.addEventListener('click',e=>{const el=e.target.closest('[data-go]'); if(el){e.preventDefault();go(el.dataset.go)}});
+  window.addEventListener('hashchange',()=>go(location.hash.slice(1)));
+  go(location.hash.slice(1)||'marca');
+
+  /* ---------- simulated telemetry ---------- */
+  const S={temp:{k:'temp',n:'Temperatura',u:'°C',min:20,max:100,warn:70,crit:85,c:'var(--s-temp)',d:0},
+           corr:{k:'corr',n:'Corrente',u:'A',min:0,max:15,warn:11,crit:12.1,c:'var(--s-corr)',d:1},
+           tens:{k:'tens',n:'Tensão',u:'V',min:180,max:260,warn:231,crit:242,c:'var(--s-tens)',d:0},
+           rot:{k:'rot',n:'Rotação',u:'rpm',min:0,max:2000,warn:1790,crit:1850,c:'var(--s-rot)',d:0},
+           vib:{k:'vib',n:'Vibração',u:'mm/s',min:0,max:8,warn:2.8,crit:4.5,c:'var(--s-vib)',d:1}};
+  const inds=[{k:'temp',n:'Temperatura da carcaça',s:'DS18B20 / PT100',on:true,eixo:true},{k:'corr',n:'Corrente',s:'SCT-013 / ACS712',on:true,eixo:true},{k:'vib',n:'Vibração',s:'MPU6050 / ADXL345',on:true,eixo:true},{k:'tens',n:'Tensão',s:'ZMPT101B',on:false,eixo:false},{k:'rot',n:'Rotação',s:'sensor Hall / encoder / saída do inversor',on:false,eixo:false}];
+  const isMeasured=k=>inds.find(i=>i.k===k).on;
+  let hw='eixo',pr='post',appType='fixa';
+  let load=0.62; const rnd=(a)=>(Math.random()-.5)*a;
+  function sample(l){ const over=Math.max(0,l-.6)/.4; return {
+    temp:46+l*18+over*14+rnd(.8), corr:8.2+l*3.2+over*2.4+rnd(.25), tens:220+rnd(1.4)-over*2,
+    rot:1715+l*55+over*40+rnd(4), vib:1.4+l*2.1+over*3.8+rnd(.18)}; }
+  const fmt=(k,v)=>v.toLocaleString('pt-BR',{minimumFractionDigits:S[k].d,maximumFractionDigits:S[k].d});
+  const sev=(k,v)=>v>=S[k].crit?'crit':v>=S[k].warn?'warn':'ok';
+  const live=[]; for(let i=0;i<60;i++) live.push(sample(0.4));
+
+  /* ---------- gauges ---------- */
+  function gaugeHTML(k,id){return `<div class="gauge" id="${id}-${k}"><svg viewBox="0 0 120 80"><path d="M12 68 A48 48 0 1 1 108 68" fill="none" stroke="var(--grid)" stroke-width="10" stroke-linecap="round"/><path class="arc" d="M12 68 A48 48 0 1 1 108 68" fill="none" stroke="${S[k].c}" stroke-width="10" stroke-linecap="round" stroke-dasharray="226" stroke-dashoffset="226"/></svg><span class="val num">–</span><span class="lbl">${S[k].n} (${S[k].u})</span></div>`}
+  function nmHTML(k){ return k==='rot'
+    ? `<div class="nm"><b>Rotação não medida</b><span style="font-size:12px">O coletor Eixo não lê rpm. Assumida nominal: 1 740 rpm.</span><button class="btn btn-secondary btn-sm" data-go="coletor">Enviar "rot"</button></div>`
+    : `<div class="nm"><b>Tensão não medida</b><span style="font-size:12px">Opcional. Envie "tens" para detectar sub/sobretensão.</span></div>`; }
+  function renderGauges(){ $('#gauges').innerHTML=['temp','corr','vib','rot','tens'].map(k=>isMeasured(k)?gaugeHTML(k,'g'):nmHTML(k)).join('');
+    $('#sim-gauges').innerHTML=['corr','vib','temp'].map(k=>gaugeHTML(k,'sg')).join('')+(isMeasured('rot')?gaugeHTML('rot','sg'):nmHTML('rot')); }
+  function updateBanners(){ const rot=isMeasured('rot'); $('#ms-banner').hidden=!(appType==='multi'&&!rot); $('#rot-banner').hidden=!rot;
+    const cr=$('#corr-rot'); if(rot){cr.classList.add('done'); cr.querySelector('.n').innerHTML='<svg width="12" height="12"><use href="#i-check"/></svg>'; cr.querySelector('b').textContent='Rotação ↑ 1,5 %'; cr.querySelector('.muted').textContent='consistente com aumento de carga; descarta variação de velocidade';}
+    else {cr.classList.remove('done'); cr.querySelector('.n').textContent='–'; cr.querySelector('b').textContent='Rotação não medida'; cr.querySelector('.muted').textContent='assumida nominal (1 740 rpm). Sobrecarga é o padrão mais provável, mas variação de velocidade não pode ser descartada.';}
+    $('#ind-hint').hidden=rot; }
+  renderGauges();
+  $('#app-type').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b)return; $$('#app-type button').forEach(x=>x.classList.toggle('on',x===b)); appType=b.dataset.app; updateBanners();});
+  function setGauge(id,k,v){const g=$('#'+id+'-'+k); if(!g) return; const p=Math.min(1,Math.max(0,(v-S[k].min)/(S[k].max-S[k].min)));
+    g.querySelector('.arc').style.strokeDashoffset=226-226*p; const s=sev(k,v); g.querySelector('.val').textContent=fmt(k,v);
+    g.querySelector('.val').style.color=s==='crit'?'var(--crit)':s==='warn'?'var(--warn)':'inherit';}
+
+  /* ---------- charts ---------- */
+  function lineChart(svg,series,opts){ const W=800,H=+svg.getAttribute('viewBox').split(' ')[3],P={l:46,r:16,t:14,b:26}; const n=series[0].v.length;
+    const all=series.flatMap(s=>s.v).concat(opts.lim?[opts.lim]:[]); let lo=Math.min(...all),hi=Math.max(...all); const pad=(hi-lo)*.15||1; lo-=pad;hi+=pad;
+    const x=i=>P.l+(i/(n-1))*(W-P.l-P.r), y=v=>P.t+(1-(v-lo)/(hi-lo))*(H-P.t-P.b);
+    let g=''; for(let i=0;i<=4;i++){const v=lo+(hi-lo)*i/4; g+=`<line class="gl" x1="${P.l}" x2="${W-P.r}" y1="${y(v)}" y2="${y(v)}"/><text x="${P.l-8}" y="${y(v)+4}" text-anchor="end">${v.toLocaleString('pt-BR',{maximumFractionDigits:opts.d})}</text>`}
+    if(opts.band){g+=`<rect x="${x(opts.band[0])}" y="${P.t}" width="${x(opts.band[1])-x(opts.band[0])}" height="${H-P.t-P.b}" fill="var(--muted)" opacity=".12"/>`}
+    if(opts.rib){ const up=opts.rib.map((r,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(r[1]).toFixed(1)).join(' '); const dn=opts.rib.slice().reverse().map((r,j)=>'L'+x(n-1-j).toFixed(1)+' '+y(r[0]).toFixed(1)).join(' ');
+      g+=`<path class="rib" d="${up} ${dn}Z" fill="${series[0].c}"/><path class="base" d="${opts.rib.map((r,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y((r[0]+r[1])/2).toFixed(1)).join(' ')}" stroke="${series[0].c}"/><text x="${P.l+6}" y="${y(opts.rib[2][1])-5}" style="fill:${series[0].c};font-weight:600">normal aprendido (±2σ)</text>`; }
+    if(opts.lim) g+=`<line class="lim" x1="${P.l}" x2="${W-P.r}" y1="${y(opts.lim)}" y2="${y(opts.lim)}"/><text x="${P.l+6}" y="${y(opts.lim)-5}" text-anchor="start" style="fill:var(--crit)">limite ${opts.lim.toLocaleString('pt-BR')}</text>`;
+    (opts.xl||[]).forEach((t,i,a)=>{g+=`<text x="${x(Math.round(i*(n-1)/(a.length-1)))}" y="${H-8}" text-anchor="${i===0?'start':i===a.length-1?'end':'middle'}">${t}</text>`});
+    series.forEach(s=>{const d=s.v.map((v,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1)).join(' ');
+      g+=`<path class="ar" d="${d} L${x(n-1)} ${y(lo)} L${x(0)} ${y(lo)}Z" fill="${s.c}"/><path class="ln" d="${d}" stroke="${s.c}"/>`;
+      const lv=s.v[n-1]; g+=`<circle cx="${x(n-1)}" cy="${y(lv)}" r="4" fill="${s.c}" stroke="var(--surface)" stroke-width="2"/><text x="${x(n-1)-8}" y="${y(lv)-9}" text-anchor="end" style="fill:var(--fg);font-weight:600">${s.n} ${lv.toLocaleString('pt-BR',{maximumFractionDigits:opts.d})}</text>`});
+    svg.innerHTML=g; }
+  function drawLive(){ const norm=k=>live.map(p=>(p[k]-S[k].min)/(S[k].max-S[k].min)*100);
+    lineChart($('#ch-live'),[{n:'Corrente',c:'var(--s-corr)',v:live.map(p=>p.corr)}],{d:1,lim:S.corr.crit,xl:['-60 s','-30 s','agora']});
+    $('#lg-live').innerHTML=`<span><i style="background:var(--s-corr)"></i>Corrente (A)</span><span><i style="background:var(--crit)"></i>Limite crítico</span>`; }
+  let histR='1h',histS='corr';
+  function drawHist(){ const svg=$('#ch-hist');
+    if(!isMeasured(histS)){ svg.innerHTML=`<text x="400" y="110" text-anchor="middle" style="fill:var(--fg);font-size:14px;font-weight:600">${S[histS].n} não é medida por este coletor</text><text x="400" y="132" text-anchor="middle">Envie a chave "${histS}" no payload para habilitar o histórico e o aprendizado desta grandeza.</text>`; return; }
+    const n={'1h':60,'24h':96,'7d':84,'30d':90}[histR]; const v=[],rib=[]; let base=0.35; const sig={temp:1.6,corr:.45,tens:2.2,rot:9,vib:.32}[histS];
+    for(let i=0;i<n;i++){ const t=i/n; const l=base+Math.sin(t*9)*.08+(t>.78?.5*(t-.78)/.22:0)+(histR!=='1h'&&t>.5&&t<.56?.45:0); v.push(sample(Math.min(1,Math.max(0,l)))[histS]);
+      const m=sample(base+Math.sin(t*9)*.08)[histS]; rib.push([m-sig,m+sig]); }
+    const xl={'1h':['-60 min','-30 min','agora'],'24h':['00:00','06:00','12:00','18:00','agora'],'7d':['seg','ter','qua','qui','sex','sáb','hoje'],'30d':['5 out','15 out','25 out','hoje']}[histR];
+    lineChart(svg,[{n:S[histS].n,c:S[histS].c,v}],{d:S[histS].d,lim:S[histS].crit,xl,band:[Math.round(n*.82),n-1],rib}); }
+  $('#hist-range').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b)return; $$('#hist-range button').forEach(x=>x.classList.toggle('on',x===b)); histR=b.dataset.r; drawHist();});
+  $('#hist-sensor').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b)return; $$('#hist-sensor button').forEach(x=>x.classList.toggle('on',x===b)); histS=b.dataset.s; drawHist();});
+  drawHist();
+
+  /* ---------- tick ---------- */
+  let reads=41280, toastShown=false;
+  function tick(){ const p=sample(load); live.push(p); if(live.length>60) live.shift(); reads+=5;
+    Object.keys(S).forEach(k=>{setGauge('g',k,p[k]);setGauge('sg',k,p[k])});
+    $('#m1-c').textContent=fmt('corr',p.corr)+' A'; $('#m1-t').textContent=fmt('temp',p.temp)+' °C'; $('#m1-v').textContent=fmt('vib',p.vib)+' mm/s';
+    $('#kpi-reads').textContent=reads.toLocaleString('pt-BR');
+    $('#anom-score').textContent=(Math.max(0,(p.vib-2.0)/0.32)).toLocaleString('pt-BR',{maximumFractionDigits:1});
+    const worst=['crit','warn','ok'].find(s=>Object.keys(S).filter(isMeasured).some(k=>sev(k,p[k])===s));
+    const lbl={ok:'Normal',warn:'Atenção',crit:'Crítico'}[worst];
+    ['#m1-pill','#m-pill','#sim-status'].forEach(id=>{const el=$(id); el.className='pill '+worst; el.innerHTML=(worst==='ok'?'<span class="dot"></span>':'')+lbl;});
+    if(worst==='crit'&&!toastShown){toastShown=true; $('#toast-m').textContent=`M-SIM · vibração ${fmt('vib',p.vib)} mm/s com corrente ${fmt('corr',p.corr)} A. Padrão de sobrecarga.`; $('#toast').classList.add('show'); if(tutStep===5) markTut(5);}
+    if(worst!=='crit') toastShown=false;
+    drawLive(); }
+  $('#toast-x').addEventListener('click',()=>$('#toast').classList.remove('show'));
+  setInterval(tick,1000); tick();
+  $('#load').addEventListener('input',e=>{load=e.target.value/100; $('#load-val').textContent=e.target.value+' %';});
+  $('#btn-ack').addEventListener('click',function(){this.className='btn btn-ok';this.innerHTML='<svg><use href="#i-check"/></svg>Reconhecido às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); $('#alert-count').textContent='1'; $('#kpi-alerts').textContent='1';});
+
+  /* ---------- coletor ---------- */
+  function renderInd(){ $('#ind-list').innerHTML=inds.map((i,idx)=>{const locked=hw==='eixo'&&i.eixo; const tag=hw==='eixo'?(i.eixo?'<span class="pill ok" style="font-size:11px">padrão Eixo</span>':'<span class="pill" style="font-size:11px">fonte externa</span>'):'';
+      return `<div class="ind-row"><span class="sw" style="background:${S[i.k].c}"></span><div class="t"><b>${i.n}</b> ${tag}<small>${i.s} · chave <span class="mono">"${i.k}"</span></small></div><button class="switch ${i.on?'on':''}" data-i="${idx}" aria-label="Ativar ${i.n}" ${locked?'disabled':''}></button></div>`}).join('');
+    $('#ind-count').textContent=inds.filter(i=>i.on).length+' de 5 ativos';
+    const vals=sample(0.4); const body=inds.filter(i=>i.on).map(i=>`  "${i.k}": ${fmt(i.k,vals[i.k]).replace(/\s/g,'').replace(',','.')}`).join(',\n');
+    $('#payload').textContent=(pr==='post'?'POST /v1/ingest\nX-Device-Token: eixo_dev_7f3a…c91e\n\n':'topic: eixo/altamira/m-01/telemetry\n\n')+`{\n  "motor": "M-01",\n  "ts": "2026-11-04T19:58:12Z",\n${body}\n}`;
+    $('#last-msg').textContent='{'+inds.filter(i=>i.on).map(i=>`"${i.k}":${fmt(i.k,vals[i.k]).replace(/\s/g,'').replace(',','.')}`).join(',')+'}';
+    renderGauges(); updateBanners(); drawHist();
+    $('#endpoint').value=pr==='post'?'https://api.eixo.app/v1/ingest':'mqtts://mqtt.eixo.app:8883';
+    $('#topic-lbl').textContent=pr==='post'?'Token do dispositivo (header X-Device-Token)':'Usuário/senha MQTT do dispositivo'; }
+  $('#ind-list').addEventListener('click',e=>{const b=e.target.closest('.switch'); if(!b||b.disabled)return; inds[b.dataset.i].on=!inds[b.dataset.i].on; renderInd();});
+  [['hw-eixo',()=>{hw='eixo';inds.forEach(i=>i.on=i.eixo)}],['hw-own',()=>{hw='own';inds.forEach(i=>i.on=true)}],['pr-post',()=>pr='post'],['pr-mqtt',()=>pr='mqtt']].forEach(([id,fn])=>$('#'+id).addEventListener('click',()=>{fn(); $('#hw-eixo').classList.toggle('on',hw==='eixo'); $('#hw-own').classList.toggle('on',hw==='own'); $('#pr-post').classList.toggle('on',pr==='post'); $('#pr-mqtt').classList.toggle('on',pr==='mqtt'); renderInd();}));
+  document.addEventListener('click',e=>{const b=e.target.closest('[data-copy]'); if(!b)return; const inp=$('#'+b.dataset.copy); const done=()=>{b.textContent='Copiado';setTimeout(()=>b.textContent='Copiar',1500)}; if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(inp.value).then(done).catch(()=>{inp.select();done()}); else {inp.select();done()}});
+  renderInd();
+
+  /* ---------- tutorial ---------- */
+  const steps=[
+    {t:'Conheça o painel',s:'Painel',x:'A Visão geral mostra todos os motores, o status de cada um e os alertas recentes. Tudo que você vê aqui vem do motor virtual M-SIM.',b:'<div class="row"><button class="btn btn-secondary btn-sm" data-go="painel">Abrir a Visão geral</button><span class="muted" style="font-size:12px">Volte por "Caminho de Tutorial" no menu.</span></div>'},
+    {t:'Cadastre o motor',s:'Motor',x:'Dados de placa alimentam a fase 1 (limites fixos): a corrente nominal define 105 % e 115 %, a rotação nominal é o que o modelo assume quando o coletor não mede rpm. O tipo de aplicação define se o Eixo deve avisar sobre multispeed.',b:'<div class="grid g2"><div class="field"><label>Nome</label><input value="M-SIM · Bomba de bancada" id="t-nome"></div><div class="field"><label>Corrente nominal (A)</label><input value="10,5" id="t-in"></div><div class="field"><label>Rotação nominal (rpm)</label><input value="1 740" id="t-rpm"></div><div class="field"><label>Aplicação</label><select id="t-app"><option>Velocidade fixa (partida direta / soft-starter)</option><option>Multispeed (inversor de frequência)</option></select></div></div><div class="banner" id="t-ms" hidden style="margin:12px 0 0"><div class="sev warn"><svg><use href="#i-warn"/></svg></div><div><span class="muted" style="font-size:12px">Multispeed sem rpm: o Eixo monitora, mas avisa que a vibração pode variar com a velocidade. Envie "rot" para liberar a linha de base por faixa.</span></div></div>'},
+    {t:'Configure o coletor simulado',s:'Coletor',x:'Em modo simulação o coletor é virtual, mas a tela é a mesma de produção. O coletor Eixo envia corrente, temperatura e vibração. Rotação e tensão são opcionais e vêm de outra fonte, se existir.',b:'<div class="row"><button class="btn btn-secondary btn-sm" data-go="coletor">Abrir configuração do coletor</button></div>'},
+    {t:'Veja os dados em tempo real',s:'Tempo real',x:'Os medidores à direita atualizam a cada segundo. Com a carga em 62 % a vibração já entrou na zona C (entre 2,8 e 4,5 mm/s), por isso o status é Atenção. Baixe a carga para 40 % e veja voltar à zona B.',b:'<div class="legend"><span><i style="background:var(--ok)"></i>zona A/B: normal</span><span><i style="background:var(--warn)"></i>zona C: atenção</span><span><i style="background:var(--crit)"></i>zona D: crítico</span></div>'},
+    {t:'Entenda o aprendizado',s:'Aprendizado',x:'Nos primeiros 14 dias valem os limites fixos. Enquanto isso o modelo registra o normal deste motor: vibração típica, corrente por horário, aquecimento. Depois, um desvio do envelope aprendido gera alerta mesmo abaixo do limite fixo. Em simulação o aprendizado é acelerado.',b:'<div class="progress" style="margin-bottom:8px"><i id="t-learn" style="width:29%"></i></div><div class="row"><span class="muted num" id="t-learn-lbl">4 de 14 dias · 29 %</span><button class="btn btn-secondary btn-sm" id="t-learn-btn">Acelerar aprendizado</button></div>'},
+    {t:'Simule a sobrecarga',s:'Sobrecarga',x:'Arraste a carga para cima de 75 %. Corrente e rotação sobem juntas, a vibração cruza a zona C e o sistema correlaciona as três grandezas antes de alertar. Espere o alerta aparecer.',b:'<div class="row"><span class="pill warn" id="t-wait">Aguardando alerta…</span></div>'},
+    {t:'Reconheça e registre a ação',s:'Ação',x:'Cada alerta traz o diagnóstico e a ação corretiva. Reduza a carga no controle à direita, confira a vibração voltar à zona B e reconheça o alerta.',b:'<div class="row"><button class="btn btn-secondary btn-sm" data-go="alertas">Abrir o alerta</button></div>'},
+  ];
+  let tutStep=0; const done=new Set();
+  function markTut(i){done.add(i); renderTut();}
+  const N=steps.length;
+  function renderTut(){ const s=steps[tutStep]; $('#tut-step-lbl').textContent=`Etapa ${tutStep+1} de ${N}`; $('#tut-title').textContent=s.t; $('#tut-text').textContent=s.x; $('#tut-body').innerHTML=s.b;
+    $('#tut-path').innerHTML=steps.map((st,i)=>`<div class="pt ${done.has(i)?'done':''} ${i===tutStep?'cur':''}"><div class="ic">${done.has(i)?'✓':i+1}</div>${st.s}</div>`).join('');
+    $('#tut-bar').style.width=(done.size/N*100)+'%'; $('#tut-pct').textContent=`${done.size} de ${N} etapas`;
+    $('#tut-prev').disabled=tutStep===0; const last=tutStep===N-1; $('#tut-next').innerHTML=last?'<svg><use href="#i-check"/></svg>Concluir e conectar motor real':'Próxima etapa<svg><use href="#i-arrow"/></svg>';
+    if(tutStep===5&&done.has(5)){const w=$('#t-wait'); if(w){w.className='pill crit';w.textContent='Alerta disparado. Avance.'}}
+    const sel=$('#t-app'); if(sel) sel.addEventListener('change',()=>{$('#t-ms').hidden=sel.selectedIndex!==1});
+    const lb=$('#t-learn-btn'); if(lb){let d=4; lb.addEventListener('click',()=>{d=Math.min(14,d+2); $('#t-learn').style.width=(d/14*100)+'%'; $('#t-learn-lbl').textContent=`${d} de 14 dias · ${Math.round(d/14*100)} %`; if(d>=14){lb.className='btn btn-ok btn-sm'; lb.innerHTML='<svg><use href="#i-check"/></svg>Linha de base aprendida';}});} }
+  $('#tut-next').addEventListener('click',()=>{ if(tutStep===5&&!done.has(5)){ $('#tut-card').style.animation='shake .3s'; setTimeout(()=>$('#tut-card').style.animation='',300); return; }
+    done.add(tutStep); if(tutStep<N-1){tutStep++;} else { $('#tut-title').textContent='Tutorial concluído'; } renderTut(); });
+  $('#tut-prev').addEventListener('click',()=>{if(tutStep>0){tutStep--;renderTut()}});
+  renderTut();
+})();
+</script>
