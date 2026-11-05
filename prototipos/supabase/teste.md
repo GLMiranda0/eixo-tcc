@@ -45,7 +45,18 @@ curl -s -X POST "https://qcyortrufewhxdyzukyc.supabase.co/rest/v1/rpc/ingest" \
   -d '{"p_token":"<token do coletor>","p":{"temp":58.1,"corr":9.4,"vib":2.6}}'
 ```
 
-Resposta: o `id` da leitura gravada. Leitura com `vib` ≥ 4,5 gera um alerta crítico (fase 1).
+Resposta: o `id` da leitura gravada. Com a migração 003, o alerta crítico da fase 1 sai quando **3 leituras válidas seguidas** passam do limite (ex.: `vib` ≥ 4,5), dentro de 2 min; leitura com mais de 60 s de atraso é gravada, mas não abre alerta.
+
+Lote (formato do coletor Eixo ≥ 1.1.0). Reenvio com o mesmo `device_id` + `boot` + `seq` é ignorado; sem `ts`, `idade_ms` dá a hora da aquisição:
+
+```bash
+curl -s -X POST "https://qcyortrufewhxdyzukyc.supabase.co/rest/v1/rpc/ingest" \
+  -H "apikey: $ANON_KEY" -H "Authorization: Bearer $ANON_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"p_token":"<token do coletor>","p":[
+        {"ts":"2026-11-05T12:00:00Z","temp":41.2,"corr":2.1,"vib":1.3,"device_id":"coletor-a1b2c3","boot":7,"seq":120},
+        {"idade_ms":2000,"temp":41.3,"corr":2.2,"vib":1.4,"device_id":"coletor-a1b2c3","boot":7,"seq":121}]}'
+```
 
 ## Conferir
 
@@ -53,4 +64,6 @@ Resposta: o `id` da leitura gravada. Leitura com `vib` ≥ 4,5 gera um alerta cr
 select * from leituras where motor_id = '00000000-0000-0000-0000-000000000011' order by ts desc limit 10;
 select * from alertas where motor_id = '00000000-0000-0000-0000-000000000011';
 select * from status_aprendizado;
+select * from qualidade_telemetria;                                     -- recebidas × esperadas, atraso P50/P95
+select atributos_janela('00000000-0000-0000-0000-000000000011');         -- médias, Δ e Pearson das últimas 30 leituras
 ```

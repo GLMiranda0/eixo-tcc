@@ -13,7 +13,7 @@ const ETAPAS = [
   ['Coletor', 'Ligue o coletor virtual', 'O coletor virtual envia leituras a cada segundo para o mesmo endpoint que o ESP32 usaria. Corrente, temperatura e vibração; sem rotação, como o coletor Eixo.'],
   ['Tempo real', 'Veja os dados chegando', 'Os medidores ao lado atualizam pelo Realtime do banco, não por polling. Com a carga em 40 % a vibração fica na zona B.'],
   ['Aprendizado', 'Entenda o aprendizado', 'Nos primeiros 14 dias valem os limites fixos. Enquanto isso o modelo registra o normal deste motor. Depois, um desvio do envelope aprendido gera alerta mesmo abaixo do limite fixo.'],
-  ['Sobrecarga', 'Simule a sobrecarga', 'Arraste a carga acima de 75 %. Corrente e vibração sobem juntas e a vibração cruza 4,5 mm/s (zona D). O banco gera o alerta crítico. Espere ele aparecer.'],
+  ['Sobrecarga', 'Simule a sobrecarga', 'Arraste a carga acima de 75 %. Corrente e vibração sobem juntas e a vibração cruza 4,5 mm/s (zona D). Depois de 3 leituras seguidas acima do limite, o banco gera o alerta crítico. Espere ele aparecer.'],
   ['Ação', 'Reconheça e registre a ação', 'Reduza a carga, veja a vibração voltar à zona B e reconheça o alerta na tela de Alertas, registrando o que foi feito.'],
 ] as const
 

@@ -41,6 +41,12 @@ export interface Leitura {
   rot: number | null
   simulado: boolean
   valida: boolean
+  /** hora de chegada no banco (migração 003); null em leituras antigas */
+  recebido_em?: string | null
+  device_id?: string | null
+  boot?: number | null
+  seq?: number | null
+  extras?: Record<string, unknown> | null
 }
 
 export interface Regra {
@@ -50,6 +56,8 @@ export interface Regra {
   limite_atencao: number
   limite_critico: number
   origem: 'padrao' | 'usuario'
+  /** leituras válidas seguidas acima do limite crítico para abrir o alerta (migração 003) */
+  persistencia?: number
 }
 
 export interface Alerta {

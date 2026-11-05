@@ -8,8 +8,9 @@ Plataforma web para supervisão de motores elétricos: coleta corrente, temperat
 |---|---|
 | `app/` | Front-end (Vite + React + TypeScript + Supabase). Veja `app/README.md`. |
 | `prototipos/` | Protótipo de telas (`eixo-prototipo.html`), estudo de viabilidade (`VIABILIDADE.md`) |
-| `prototipos/supabase/` | `schema.sql` (banco), `teste.md` (dados e usuário de teste) |
+| `prototipos/supabase/` | `schema.sql` (banco) e migrações `002_papeis_auditoria.sql`, `003_ingestao_lotes_persistencia.sql`, aplicadas nessa ordem; `teste.md` (dados e usuário de teste) |
 | `TCC_*.docx` | Documento base do trabalho |
+| `Artigo_TCC_*_revisado.docx` | Artigo alinhado ao protótipo implementado; `_marcas` traz as alterações como revisões do Word |
 
 ## Repositório complementar
 

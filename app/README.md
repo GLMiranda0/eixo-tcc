@@ -43,7 +43,7 @@ Uma empresa nunca enxerga dados de outra (Row Level Security no banco).
 
 ## Banco
 
-Schema em `../prototipos/supabase/schema.sql`. Dados e usuário de teste em `../prototipos/supabase/teste.md`.
+Schema em `../prototipos/supabase/schema.sql`, seguido das migrações `002_papeis_auditoria.sql` e `003_ingestao_lotes_persistencia.sql` (ingestão em lote com `device_id`/`boot`/`seq`, persistência dos alertas da fase 1, `atributos_janela()` e a view `qualidade_telemetria`). Dados e usuário de teste em `../prototipos/supabase/teste.md`.
 
 ## Deploy na Hostinger (plano Single)
 

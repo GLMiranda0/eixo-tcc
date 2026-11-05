@@ -198,7 +198,7 @@ export function Motor() {
           </div>
           <div className="steps">
             {[
-              ['Limites fixos', 'ISO 10816-3, % da corrente nominal, classe de isolação.', 1],
+              ['Limites fixos', 'ISO 10816-3, % da corrente nominal, classe de isolação; alerta após leituras seguidas acima do limite.', 1],
               ['Linha de base aprendida', 'Média e desvio por hora e dia da semana; alerta ao sair do envelope ±2σ.', 2],
               ['Diagnóstico por padrão', 'Combina os desvios em um padrão nomeado e sugere a ação.', 3],
             ].map(([t, d, f]) => (
@@ -225,6 +225,7 @@ export function Motor() {
                   <th>Grandeza</th>
                   <th>Atenção</th>
                   <th>Crítico</th>
+                  <th title="Leituras válidas seguidas acima do limite crítico para abrir o alerta">Persistência</th>
                   <th>Origem</th>
                 </tr>
               </thead>
@@ -240,6 +241,7 @@ export function Motor() {
                       <td className="num">
                         ≥ {fmt(r.grandeza, r.limite_critico)} {GRANDEZAS[r.grandeza].unidade}
                       </td>
+                      <td className="num">{r.persistencia ?? 1} leitura{(r.persistencia ?? 1) > 1 ? 's' : ''}</td>
                       <td className="muted">{r.origem}</td>
                     </tr>
                   ))}
