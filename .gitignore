@@ -6,6 +6,7 @@ app/dist/
 app/.env
 *.env.local
 *.local.md
+.claude/settings.local.json
 
 # sistema
 .DS_Store
