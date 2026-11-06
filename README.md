@@ -4,7 +4,7 @@ TCC · Engenharia da Computação · Universidade São Judas Tadeu · 2026
 
 Plataforma web para supervisão de motores elétricos: coleta corrente, temperatura e vibração (ESP32 ou coletor de terceiro, via POST HTTPS ou MQTT), aprende o "normal" de cada motor e emite alertas com ação corretiva.
 
-**Acesse:** <https://eixomotores.cloud> (publicado em 06/11/2026; o modo simulação dispensa hardware).
+**Acesse:** <https://eixomotores.cloud> (publicado em 06/11/2026; o Guia interativo dispensa hardware).
 
 | Pasta | Conteúdo |
 |---|---|

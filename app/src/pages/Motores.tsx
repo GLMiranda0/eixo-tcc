@@ -169,7 +169,7 @@ export function Motores() {
 
       {motores.length === 0 ? (
         <div className="empty">
-          {podeEditar ? 'Nenhum motor ainda. Cadastre o primeiro acima ou use o Caminho de Tutorial.' : 'Nenhum motor cadastrado nesta empresa ainda.'}
+          {podeEditar ? 'Nenhum motor ainda. Cadastre o primeiro acima ou siga o Guia interativo.' : 'Nenhum motor cadastrado nesta empresa ainda.'}
         </div>
       ) : (
         <div className="grid g3">

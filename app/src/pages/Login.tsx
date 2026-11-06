@@ -14,7 +14,7 @@ type Modo = 'entrar' | 'criar' | 'esqueci' | 'codigo' | 'nova' | 'enviado' | 'co
 /**
  * Estado compartilhado com o roteador: enquanto a recuperação de senha está em andamento,
  * a rota /login não redireciona (o verifyOtp cria a sessão antes de a senha nova ser gravada).
- * `destino` define para onde ir depois de entrar (ex.: /tutorial no modo simulação).
+ * `destino` define para onde ir depois de entrar (ex.: /guia, o Guia interativo, ao explorar em modo simulação).
  */
 export const fluxoLogin = { recuperando: false, destino: '/painel' }
 
@@ -203,7 +203,7 @@ export function Login({ modoInicial = 'entrar' }: { modoInicial?: Modo }) {
   }
 
   function simulacao(e: FormEvent) {
-    if (modo === 'entrar' && email && senha) return enviar(e, '/tutorial')
+    if (modo === 'entrar' && email && senha) return enviar(e, '/guia')
     e.preventDefault()
     irPara('criar')
     setAviso('Crie uma conta (ou entre com a sua) para abrir o modo simulação. Ele não precisa de hardware.')

@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth, useContaAtiva } from '../lib/auth'
+import { lerDecisaoGuia } from '../lib/guia'
 import { useAlertas, useMotores, useUltimasLeituras } from '../lib/hooks'
 import { supabase } from '../lib/supabase'
 import { SEV_LABEL, fmt, pior, type Regra, type StatusAprendizado } from '../lib/types'
 
 export function Painel() {
   const nav = useNavigate()
-  const { perfil, session, podeEditar, isDev } = useAuth()
+  const { perfil, session, papel, podeEditar, isDev } = useAuth()
   const { semEmpresa } = useContaAtiva()
   const { motores, carregando } = useMotores()
   const ids = useMemo(() => motores.map((m) => m.id), [motores])
@@ -49,6 +50,7 @@ export function Painel() {
   const saud = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite'
   const nome = perfil?.nome || session?.user.email?.split('@')[0] || ''
   const criticos = alertas.filter((a) => a.severidade === 'critico').length
+  const guiaEmAndamento = !!papel && papel !== 'dev' && lerDecisaoGuia(session) === 'iniciado'
 
   return (
     <>
@@ -61,8 +63,8 @@ export function Painel() {
         </div>
         {podeEditar ? (
           <>
-            <Link to="/tutorial" className="btn btn-secondary btn-sm">
-              Modo simulação
+            <Link to="/guia" className="btn btn-secondary btn-sm">
+              Guia interativo
             </Link>
             <Link to="/motores" className="btn btn-primary">
               + Novo motor
@@ -72,6 +74,18 @@ export function Painel() {
           <span className="pill">Somente visualização</span>
         )}
       </div>
+
+      {guiaEmAndamento && (
+        <div className="banner info">
+          <div className="sev ok">i</div>
+          <div>
+            <b>Seu guia interativo está em andamento.</b>
+          </div>
+          <Link to="/guia" className="btn btn-secondary btn-sm">
+            Continuar o guia
+          </Link>
+        </div>
+      )}
 
       {isDev && semEmpresa && (
         <div className="banner info">
@@ -132,7 +146,7 @@ export function Painel() {
             <div className="empty" style={{ margin: 16 }}>
               {podeEditar ? (
                 <>
-                  Nenhum motor cadastrado ainda. <Link to="/tutorial">Comece pelo Caminho de Tutorial</Link> ou <Link to="/motores">cadastre um motor real</Link>.
+                  Nenhum motor cadastrado ainda. <Link to="/guia">Comece pelo Guia interativo</Link> ou <Link to="/motores">cadastre um motor real</Link>.
                 </>
               ) : (
                 'Nenhum motor cadastrado nesta empresa ainda.'

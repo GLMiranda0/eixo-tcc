@@ -201,3 +201,19 @@ input[aria-invalid="true"]{border-color:var(--crit)}
 
 @media (max-width:900px){.shell{grid-template-columns:1fr}.side{display:none}.g4,.g5,.g3{grid-template-columns:repeat(2,minmax(0,1fr))}.login{grid-template-columns:1fr}.login .hero{padding:28px}.login .hero h1{font-size:30px}.path{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media (max-width:520px){.g2,.g3,.g4,.g5{grid-template-columns:1fr}.alert-item,.banner{grid-template-columns:auto 1fr}.path{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* guia: convite de primeiro acesso */
+.convite-guia-overlay{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:16px;background:rgba(6,12,20,.55);backdrop-filter:blur(3px);overflow-y:auto}
+.convite-guia{width:min(520px,100%);padding:28px;border-radius:18px;box-shadow:var(--shadow),0 0 0 1px color-mix(in srgb,var(--accent) 18%,transparent);animation:pop .35s ease-out both;display:flex;flex-direction:column;gap:14px}
+.convite-guia .eyebrow{margin:0;color:var(--accent)}
+.convite-guia h2{font-size:24px}
+.convite-guia-texto{margin:0;color:var(--fg)}
+.convite-guia-etapas{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.convite-guia-etapas li{display:flex;align-items:center;gap:12px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2)}
+.convite-guia-etapas .ic{flex:none;display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--accent-soft);color:var(--accent)}
+.convite-guia-etapas svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.convite-guia-nota{margin:0;font-size:13px;padding:10px 12px;border-radius:10px;background:var(--accent-soft);color:var(--fg)}
+.convite-guia-acoes{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:4px}
+.convite-guia-acoes .btn-secondary[disabled]{font-variant-numeric:tabular-nums;min-width:150px}
+.convite-guia-rodape{margin:0;font-size:12px}
+@media (max-width:520px){.convite-guia{padding:20px}.convite-guia-acoes .btn{flex:1 1 100%}}

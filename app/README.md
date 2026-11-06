@@ -19,7 +19,7 @@ Abre em http://localhost:5173. As variáveis `VITE_SUPABASE_URL` e `VITE_SUPABAS
 |---|---|
 | `src/styles.css` | Tokens da identidade visual (tema claro/escuro), botões, cards, gauges |
 | `src/lib/supabase.ts` | Cliente Supabase, chamada `ingest` (igual ao ESP32), geração e hash de token |
-| `src/lib/sim.ts` | Coletor virtual: reproduz o ensaio da bancada (carga → corrente, vibração) |
+| `src/lib/sim.ts` | Coletor virtual: gera leituras conforme a carga aplicada (carga → corrente, vibração) |
 | `src/lib/hooks.ts` | Motores, leituras em tempo real (Realtime), alertas, status de aprendizado |
 | `src/lib/auth.tsx` | Sessão e perfil do usuário |
 | `src/pages/Login.tsx` | Entrar / criar conta (tela de "conta criada, confirme o e-mail") / boas-vindas do convidado / explorar em simulação |
@@ -28,7 +28,7 @@ Abre em http://localhost:5173. As variáveis `VITE_SUPABASE_URL` e `VITE_SUPABAS
 | `src/pages/Motores.tsx` | Lista e cadastro (dados de placa + coletor) |
 | `src/pages/Motor.tsx` | Tempo real, histórico, fases do diagnóstico, limites, coletor e token |
 | `src/pages/Alertas.tsx` | Diagnóstico, ações corretivas, reconhecer/silenciar |
-| `src/pages/Tutorial.tsx` | Caminho de Tutorial com motor e coletor virtuais |
+| `src/pages/Guia.tsx` | Guia interativo: motor virtual, configuração e instalação do coletor, conexão com a chave gerada, tempo real, sobrecarga e tratamento do alerta (modo demonstração para perfis de visualização) |
 | `src/pages/Usuarios.tsx` | Equipe da empresa (só master): convites por e-mail (Edge Function `convidar`), papéis, desativação, limites 1/4/5 |
 | `src/pages/Auditoria.tsx` | Histórico de atividades: master, admin e comum veem eventos em texto (motor + coletor, convites e níveis, tratativa de alertas); o dev vê também os automáticos e a visão técnica (tabela/JSON) |
 | `src/pages/Dev.tsx` | Visão global para suporte (só dev): empresas, contagens e "Abrir quadro" |

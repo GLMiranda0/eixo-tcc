@@ -9,7 +9,7 @@ import { Painel } from './pages/Painel'
 import { Motores } from './pages/Motores'
 import { Motor } from './pages/Motor'
 import { Alertas } from './pages/Alertas'
-import { Tutorial } from './pages/Tutorial'
+import { Guia } from './pages/Guia'
 import { Usuarios } from './pages/Usuarios'
 import { Auditoria } from './pages/Auditoria'
 import { Dev } from './pages/Dev'
@@ -47,7 +47,8 @@ function Rotas() {
         <Route path="/motores" element={<Motores />} />
         <Route path="/motores/:id" element={<Motor />} />
         <Route path="/alertas" element={<Alertas />} />
-        <Route path="/tutorial" element={<Tutorial />} />
+        <Route path="/guia" element={<Guia />} />
+        <Route path="/tutorial" element={<Navigate to="/guia" replace />} />
         <Route
           path="/usuarios"
           element={

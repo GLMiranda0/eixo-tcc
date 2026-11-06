@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { Logo } from './Logo'
+import { ConviteGuia } from './ConviteGuia'
 import { ThemeToggle } from '../lib/theme'
 import { useAuth } from '../lib/auth'
 import { useIdsMotoresFiltro } from '../lib/hooks'
@@ -56,7 +57,7 @@ export function Shell() {
           {item('/painel', 'Visão geral')}
           {item('/motores', 'Motores')}
           {item('/alertas', 'Alertas', ativos)}
-          {item('/tutorial', 'Caminho de Tutorial')}
+          {item('/guia', 'Guia interativo')}
           {isMaster && item('/usuarios', 'Usuários')}
           {papel && item('/auditoria', 'Auditoria')}
         </nav>
@@ -100,6 +101,7 @@ export function Shell() {
         )}
         <Outlet />
       </div>
+      <ConviteGuia />
     </div>
   )
 }
