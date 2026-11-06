@@ -1,16 +1,16 @@
 # Eixo · Viabilidade técnica (04/11/2026)
 
-Plataforma web para supervisão de motores elétricos, derivada do TCC
+Plataforma web para supervisão de motores elétricos, derivada do Documento de Software do TCC
 "Sistema Inteligente de Supervisão e Diagnóstico de Motores Elétricos".
 
 ## O que existe hoje na conta Hostinger (hpanel)
 
 | Recurso | Situação | Serve para |
 |---|---|---|
-| Plano **Single** (hospedagem compartilhada) | Ativo, **expira em 16/11/2026**, site ainda não configurado | Hospedar o front-end (HTML/JS estático ou PHP). Não roda Node.js nem MQTT. |
+| Plano **Single** (hospedagem compartilhada) | Ativo, **expira em 16/11/2026**; site publicado em <https://eixomotores.cloud> (06/11/2026) | Hospedar o front-end (HTML/JS estático ou PHP). Não roda Node.js nem MQTT. |
 | **VPS KVM 4** (`srv1364001.hstgr.cloud`, 187.77.38.235, Ubuntu 24.04) | **Parado**, válido até 11/02/2027 | Broker MQTT (Mosquitto), API Node, Docker. Sobra recurso. |
 | Web Apps (Node.js com deploy via GitHub) | Disponível só em planos Business+ | Alternativa ao VPS se quiserem evitar administrar servidor. |
-| Domínio | Nenhum registrado; há 1 domínio grátis por 1 ano para resgatar | `eixo.app` / `eixo.com.br` ou similar. |
+| Domínio | **eixomotores.cloud**, resgatado em 06/11/2026 (grátis no 1º ano, renova a US$ 25,99/ano em 06/11/2027); verificar o e-mail do titular até 20/11/2026 | Endereço público da plataforma, com SSL Let's Encrypt. |
 
 ## Supabase
 
@@ -70,7 +70,7 @@ Enquanto a fase 2 não está pronta, o painel mostra "Aprendendo · X de 14 dias
 
 `contas` → `usuarios` → `motores` (dados de placa, rpm nominal, aplicação fixa|multispeed) → `coletores` (tipo: eixo | terceiro; protocolo: post | mqtt; token; indicadores habilitados) → `leituras` (motor_id, ts, temp, corr, vib, tens?, rot?, simulado) → `baseline_motor` (motor_id, grandeza, hora, dia_semana, faixa_rpm?, media, desvio, n) → `regras_diagnostico` → `anomalias` (indice, fase, confianca) → `alertas` → `acoes_corretivas`.
 
-Isso espelha o diagrama de classes do TCC (Operador, Motor, GatewayESP32, Sensor, LeituraSensor, RegraDiagnostico, Anomalia, Alerta, AcaoCorretiva).
+Isso espelha o diagrama de classes do Documento de Software (Operador, Motor, GatewayESP32, Sensor, LeituraSensor, RegraDiagnostico, Anomalia, Alerta, AcaoCorretiva).
 
 ## Riscos e decisões pendentes
 

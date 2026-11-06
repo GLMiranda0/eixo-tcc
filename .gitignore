@@ -1,6 +1,7 @@
 # dependências e builds
 node_modules/
 app/dist/
+app/eixo-deploy.zip
 
 # variáveis de ambiente (use app/.env.example como modelo)
 app/.env

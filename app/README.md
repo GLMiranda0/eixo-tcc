@@ -2,6 +2,8 @@
 
 Front-end da plataforma Eixo (supervisão de motores elétricos). Vite + React + TypeScript + Supabase.
 
+Em produção: <https://eixomotores.cloud>
+
 ## Rodar
 
 ```bash
@@ -45,15 +47,17 @@ Uma empresa nunca enxerga dados de outra (Row Level Security no banco).
 
 Schema em `../prototipos/supabase/schema.sql`, seguido das migrações `002_papeis_auditoria.sql` e `003_ingestao_lotes_persistencia.sql` (ingestão em lote com `device_id`/`boot`/`seq`, persistência dos alertas da fase 1, `atributos_janela()` e a view `qualidade_telemetria`). Dados e usuário de teste em `../prototipos/supabase/teste.md`.
 
-## Deploy na Hostinger (plano Single)
+## Publicação (Hostinger, plano Single)
 
-`npm run build` gera `dist/`. Suba o conteúdo de `dist/` para `public_html` e adicione um `.htaccess` redirecionando tudo para `index.html` (SPA):
+Site: <https://eixomotores.cloud>, publicado em 06/11/2026. Domínio resgatado no plano (grátis no 1º ano) e certificado TLS Let's Encrypt emitido e renovado pela Hostinger.
 
-```
-RewriteEngine On
-RewriteBase /
-RewriteRule ^index\.html$ - [L]
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . /index.html [L]
-```
+Para publicar uma nova versão:
+
+1. `npm run build` (com o `.env` preenchido: a URL e a chave publicável entram no build).
+2. No hPanel › Arquivos › Gerenciador de Arquivos, substitua o conteúdo de `public_html` pelo de `dist/`.
+
+O `public/.htaccess` é copiado para `dist/` em todo build. Ele redireciona as rotas da SPA para `index.html`, força HTTPS e define o cache (`index.html` sem cache; JS e CSS com hash por 1 ano).
+
+No Supabase (Authentication › URL Configuration), a Site URL é `https://eixomotores.cloud/`: é para lá que voltam os links de confirmação de conta e de recuperação de senha. Para testar esses fluxos em `localhost`, inclua `http://localhost:5173/**` em Redirect URLs.
+
+Prazos: o plano Single vence em 16/11/2026; o e-mail de titularidade do domínio precisa ser verificado até 20/11/2026.

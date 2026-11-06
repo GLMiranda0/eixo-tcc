@@ -1,7 +1,7 @@
 -- =====================================================================
 -- Eixo · schema inicial (Supabase / Postgres)
 -- Projeto: qcyortrufewhxdyzukyc (sa-east-1) · aplicado em 04/11/2026
--- Espelha o diagrama de classes do TCC: Operador, Motor, GatewayESP32,
+-- Espelha o diagrama de classes do Documento de Software: Operador, Motor, GatewayESP32,
 -- LeituraSensor, RegraDiagnostico, Anomalia, Alerta, AcaoCorretiva,
 -- mais a linha de base aprendida (fase 2 do diagnóstico).
 -- =====================================================================
