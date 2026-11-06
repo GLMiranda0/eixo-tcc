@@ -24,6 +24,18 @@ const CORS = {
 const SITE = Deno.env.get('SITE_URL') ?? 'https://eixomotores.cloud'
 const PAPEL: Record<string, string> = { admin: 'Admin', comum: 'Comum' }
 
+/** service_role (chaves legadas) ou a chave secreta nova (SUPABASE_SECRET_KEYS = {"default": "sb_secret_…"}) */
+function chaveSecreta(): string {
+  const legada = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  if (legada) return legada
+  try {
+    const novas = JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS') ?? '{}') as Record<string, string>
+    return novas.default ?? Object.values(novas)[0] ?? ''
+  } catch {
+    return ''
+  }
+}
+
 const resposta = (status: number, corpo: Record<string, unknown>) =>
   new Response(JSON.stringify(corpo), { status, headers: { ...CORS, 'Content-Type': 'application/json' } })
 
@@ -41,7 +53,7 @@ Deno.serve(async (req) => {
   const jwt = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '')
   if (!jwt) return resposta(401, { erro: 'Entre na plataforma para convidar.' })
 
-  const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
+  const admin = createClient(Deno.env.get('SUPABASE_URL')!, chaveSecreta(), {
     auth: { persistSession: false, autoRefreshToken: false },
   })
 
