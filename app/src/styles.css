@@ -160,5 +160,44 @@ input[type=range]{accent-color:var(--accent);padding:0}
 .divider{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px}
 .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--border)}
 
+/* conta criada / cadastro da empresa */
+.done-card{text-align:left;animation:pop .35s ease-out}
+.done-ico{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;color:var(--ok);background:var(--ok-soft);margin-bottom:2px}
+.done-ico path{stroke-dasharray:40;stroke-dashoffset:40;animation:tracar .6s .15s ease-out forwards}
+@keyframes tracar{to{stroke-dashoffset:0}}
+.done-steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;color:var(--muted);font-size:13px}
+.done-steps b{color:var(--fg)}
+.onb{min-height:100%;padding:24px;display:flex;flex-direction:column;gap:24px;background:radial-gradient(900px 500px at 110% -10%,color-mix(in srgb,var(--accent) 16%,transparent),transparent 60%),var(--bg)}
+.onb-card{width:min(520px,100%);margin:0 auto;padding:28px;display:flex;flex-direction:column;gap:14px;animation:pop .35s ease-out}
+.onb-steps{list-style:none;margin:0 0 4px;padding:0;display:flex;gap:8px;flex-wrap:wrap}
+.onb-step{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--muted);padding:5px 10px 5px 5px;border-radius:999px;border:1px solid var(--border)}
+.onb-step .n{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11px;background:var(--surface-2)}
+.onb-step.done{color:var(--ok);border-color:transparent;background:var(--ok-soft)} .onb-step.done .n{background:var(--ok);color:#fff}
+.onb-step.now{color:var(--accent);border-color:var(--accent)} .onb-step.now .n{background:var(--accent);color:var(--accent-ink)}
+input[aria-invalid="true"]{border-color:var(--crit)}
+
+/* auditoria: eventos legíveis */
+.ev-list{display:flex;flex-direction:column}
+.ev{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:start;padding:14px 16px;border-bottom:1px solid var(--border)}
+.ev:last-child{border-bottom:0}
+.ev .ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--surface-2);color:var(--muted)}
+.ev .ic svg{width:18px;height:18px}
+.ev .ic.ok{background:var(--ok-soft);color:var(--ok)} .ev .ic.warn{background:var(--warn-soft);color:var(--warn)}
+.ev .ic.crit{background:var(--crit-soft);color:var(--crit)} .ev .ic.acc{background:var(--accent-soft);color:var(--accent)}
+.ev .ic.sys{background:transparent;border:1px dashed var(--border)}
+.ev .tt{font-weight:600} .ev .desc{color:var(--muted);font-size:13px;margin-top:2px}
+.ev .meta{font-size:12px;color:var(--muted);margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.ev .when{font-size:12px;color:var(--muted);text-align:right;white-space:nowrap}
+.ev .det{grid-column:2 / -1;margin-top:4px}
+.ev-changes{margin:8px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px;font-size:13px}
+.ev-changes li{display:flex;gap:6px;flex-wrap:wrap;align-items:baseline}
+.ev-changes .de{color:var(--crit);text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--crit) 50%,transparent)}
+.ev-changes .para{color:var(--ok);font-weight:600}
+.ev-day{padding:10px 16px 6px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--surface-2);border-bottom:1px solid var(--border)}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:3px}
+.seg button{border:0;background:transparent;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;color:var(--muted)}
+.seg button.on{background:var(--accent-soft);color:var(--accent)}
+@media (max-width:520px){.ev{grid-template-columns:32px 1fr}.ev .when{grid-column:2;text-align:left}}
+
 @media (max-width:900px){.shell{grid-template-columns:1fr}.side{display:none}.g4,.g5,.g3{grid-template-columns:repeat(2,minmax(0,1fr))}.login{grid-template-columns:1fr}.login .hero{padding:28px}.login .hero h1{font-size:30px}.path{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media (max-width:520px){.g2,.g3,.g4,.g5{grid-template-columns:1fr}.alert-item,.banner{grid-template-columns:auto 1fr}.path{grid-template-columns:repeat(2,minmax(0,1fr))}}

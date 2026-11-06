@@ -13,11 +13,15 @@ import { Tutorial } from './pages/Tutorial'
 import { Usuarios } from './pages/Usuarios'
 import { Auditoria } from './pages/Auditoria'
 import { Dev } from './pages/Dev'
+import { CadastroEmpresa } from './pages/CadastroEmpresa'
 
 function Privado() {
-  const { session, carregando } = useAuth()
-  if (carregando) return <p className="muted" style={{ padding: 24 }}>Carregando…</p>
-  return session ? <Shell /> : <Navigate to="/login" replace />
+  const { session, carregando, carregandoPerfil, precisaEmpresa } = useAuth()
+  if (carregando || (session && carregandoPerfil)) return <p className="muted" style={{ padding: 24 }}>Carregando…</p>
+  if (!session) return <Navigate to="/login" replace />
+  // primeiro acesso sem convite: cadastro da empresa antes de abrir a plataforma
+  if (precisaEmpresa) return <CadastroEmpresa />
+  return <Shell />
 }
 
 /** Renderiza a página só para os papéis listados; os demais voltam para a visão geral. */
@@ -30,9 +34,11 @@ function SoPapel({ papeis, children }: { papeis: Papel[]; children: ReactNode })
 
 function Rotas() {
   useTema()
-  const { session, recuperandoSenha } = useAuth()
+  const { session, recuperandoSenha, chegouPorConvite } = useAuth()
   // chegou pelo link de recuperação do e-mail: só a tela de nova senha, em qualquer rota
   if (recuperandoSenha) return <Login modoInicial="nova" />
+  // chegou pelo e-mail de convite: define nome e senha antes de entrar
+  if (chegouPorConvite) return <Login modoInicial="convite" />
   return (
     <Routes>
       <Route path="/login" element={session && !fluxoLogin.recuperando ? <Navigate to={fluxoLogin.destino} replace /> : <Login />} />
@@ -53,7 +59,7 @@ function Rotas() {
         <Route
           path="/auditoria"
           element={
-            <SoPapel papeis={['master', 'admin', 'dev']}>
+            <SoPapel papeis={['master', 'admin', 'comum', 'dev']}>
               <Auditoria />
             </SoPapel>
           }

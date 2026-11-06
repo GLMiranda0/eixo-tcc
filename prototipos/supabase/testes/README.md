@@ -13,6 +13,8 @@ psql -d eixo_teste -v ON_ERROR_STOP=1 -f ../003_ingestao_lotes_persistencia.sql
 psql -d eixo_teste -f 003_ingest.sql
 ```
 
+`004_cadastro_convites.sql` exige o `auth.users` real do Supabase: rode no SQL editor, depois da migração 004 (ou colado logo após ela, como ensaio). Ele termina sempre com um erro proposital que lista os 16 testes e desfaz tudo. Em 06/11/2026, no projeto de produção, os 16 passaram (ensaio sem gravar).
+
 O `grep` tira a criação do `pgcrypto` porque o stub já fornece `extensions.digest()`.
 Os erros no fim da saída (token inválido, payload inválido) são esperados: o teste T11 os provoca.
 

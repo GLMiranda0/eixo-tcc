@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
-import { supabase } from './supabase'
+import { linkEmail, supabase } from './supabase'
 import type { Papel, Perfil } from './types'
 
 export interface ContaVisualizada {
@@ -26,6 +26,16 @@ interface AuthState {
   /** true quando o usuário chegou pelo link de recuperação de senha do e-mail */
   recuperandoSenha: boolean
   setRecuperandoSenha: (v: boolean) => void
+  /** usuário logado sem empresa e sem convite pendente: o app pede o cadastro da empresa */
+  precisaEmpresa: boolean
+  /** chegou pelo link do e-mail de convite: falta definir nome e senha */
+  chegouPorConvite: boolean
+  setChegouPorConvite: (v: boolean) => void
+  /** chegou pelo link de confirmação de conta */
+  emailConfirmado: boolean
+  /** o link do e-mail expirou ou já foi usado */
+  erroLink: string | null
+  limparErroLink: () => void
 }
 
 const CHAVE_CONTA_VIS = 'eixo-conta-vis'
@@ -45,6 +55,12 @@ const Ctx = createContext<AuthState>({
   sair: async () => {},
   recuperandoSenha: false,
   setRecuperandoSenha: () => {},
+  precisaEmpresa: false,
+  chegouPorConvite: false,
+  setChegouPorConvite: () => {},
+  emailConfirmado: false,
+  erroLink: null,
+  limparErroLink: () => {},
 })
 
 function lerContaVis(): ContaVisualizada | null {
@@ -63,6 +79,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [perfilUid, setPerfilUid] = useState<string | null>(null)
   const [contaVisualizada, setContaVisState] = useState<ContaVisualizada | null>(lerContaVis)
   const [recuperandoSenha, setRecuperandoSenha] = useState(false)
+  const [precisaEmpresa, setPrecisaEmpresa] = useState(false)
+  const [chegouPorConvite, setChegouPorConvite] = useState(linkEmail.tipo === 'invite')
+  const [erroLink, setErroLink] = useState<string | null>(linkEmail.erro)
+  const emailConfirmado = linkEmail.tipo === 'signup' || linkEmail.tipo === 'email'
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -85,8 +105,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setPerfilUid(null)
       return
     }
-    const { data } = await supabase.from('perfis').select('*').eq('id', uid).maybeSingle()
-    setPerfil(data as Perfil | null)
+    const ler = async () => (await supabase.from('perfis').select('*').eq('id', uid).maybeSingle()).data as Perfil | null
+    let p = await ler()
+    let semEmpresa = false
+    // sem empresa: primeiro procura um convite pendente para o e-mail (migração 004)
+    if (!p || (p.papel !== 'dev' && !p.conta_id)) {
+      const { data: r, error } = await supabase.rpc('vincular_convite')
+      if (!error) {
+        if (r !== 'vinculado' || !p) p = await ler()
+        semEmpresa = r === 'sem_empresa'
+      }
+    }
+    setPerfil(p)
+    setPrecisaEmpresa(semEmpresa)
     setPerfilUid(uid)
   }, [uid])
 
@@ -131,6 +162,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         sair,
         recuperandoSenha,
         setRecuperandoSenha,
+        precisaEmpresa: !!uid && precisaEmpresa,
+        chegouPorConvite: !!uid && chegouPorConvite,
+        setChegouPorConvite,
+        emailConfirmado,
+        erroLink,
+        limparErroLink: () => setErroLink(null),
       }}
     >
       {children}

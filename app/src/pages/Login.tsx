@@ -1,12 +1,15 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { Logo } from '../components/Logo'
 import { ThemeToggle } from '../lib/theme'
 import { useAuth } from '../lib/auth'
 
-/** 'codigo' = código de 6 dígitos (exige SMTP próprio com {{ .Token }}); 'nova' = chegou pelo link do e-mail */
-type Modo = 'entrar' | 'criar' | 'esqueci' | 'codigo' | 'nova'
+/**
+ * 'codigo' = código de 6 dígitos (exige SMTP próprio com {{ .Token }}); 'nova' = chegou pelo link do e-mail;
+ * 'enviado' = conta criada, aguardando a confirmação do e-mail; 'convite' = chegou pelo e-mail de convite.
+ */
+type Modo = 'entrar' | 'criar' | 'esqueci' | 'codigo' | 'nova' | 'enviado' | 'convite'
 
 /**
  * Estado compartilhado com o roteador: enquanto a recuperação de senha está em andamento,
@@ -31,10 +34,19 @@ function traduzir(msg: string) {
   if (m.includes('user already registered')) return 'Já existe uma conta com este e-mail. Entre ou recupere a senha.'
   if (m.includes('token has expired') || m.includes('invalid token') || m.includes('otp')) return 'Código inválido ou expirado. Peça um novo código.'
   if (m.includes('different from the old password')) return 'A nova senha precisa ser diferente da atual.'
-  if (m.includes('for security purposes') || m.includes('rate limit')) return 'Muitas tentativas em pouco tempo. Aguarde um minuto e tente de novo.'
+  // limite do servidor de e-mail do projeto inteiro (SMTP padrão do Supabase: poucos e-mails por hora)
+  if (m.includes('email rate limit') || m.includes('over_email_send_rate_limit'))
+    return 'O servidor atingiu o limite de e-mails enviados por hora (vale para todo o site, não só para você). Tente de novo mais tarde.'
+  // limite por e-mail: "For security purposes, you can only request this after 42 seconds."
+  if (m.includes('for security purposes')) {
+    const s = msg.match(/(\d+)\s*second/i)?.[1]
+    return s ? `Por segurança, aguarde ${s} segundos antes de pedir outro e-mail.` : 'Por segurança, aguarde um minuto antes de pedir outro e-mail.'
+  }
+  if (m.includes('rate limit')) return 'Muitas tentativas em pouco tempo. Aguarde um minuto e tente de novo.'
   if (m.includes('password should be')) return 'A senha não atende aos requisitos mínimos.'
   if (m.includes('unable to validate email') || m.includes('invalid email')) return 'E-mail inválido.'
   if (m.includes('failed to fetch')) return 'Sem conexão com o servidor. Verifique a internet.'
+  if (m.includes('expired') || m.includes('invalid or has expired')) return 'O link do e-mail expirou ou já foi usado. Entre com sua senha ou peça um novo e-mail.'
   return msg
 }
 
@@ -58,17 +70,41 @@ function ChecklistSenha({ senha }: { senha: string }) {
 
 export function Login({ modoInicial = 'entrar' }: { modoInicial?: Modo }) {
   const nav = useNavigate()
-  const { setRecuperandoSenha } = useAuth()
+  const { session, setRecuperandoSenha, setChegouPorConvite, recarregarPerfil, erroLink, limparErroLink } = useAuth()
+  const meta = (session?.user.user_metadata ?? {}) as { nome?: string; empresa?: string; papel?: string; convidado_por?: string }
   const [modo, setModo] = useState<Modo>(modoInicial)
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [senha2, setSenha2] = useState('')
-  const [nome, setNome] = useState('')
-  const [empresa, setEmpresa] = useState('')
+  const [nome, setNome] = useState(modoInicial === 'convite' ? meta.nome ?? '' : '')
   const [codigo, setCodigo] = useState('')
-  const [erro, setErro] = useState<string | null>(null)
+  const [erro, setErro] = useState<string | null>(erroLink ? traduzir(erroLink) : null)
   const [aviso, setAviso] = useState<string | null>(null)
   const [ocupado, setOcupado] = useState(false)
+  /** segundos até poder reenviar o e-mail de confirmação */
+  const [espera, setEspera] = useState(0)
+
+  useEffect(() => {
+    if (erroLink) limparErroLink()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (espera <= 0) return
+    const t = setTimeout(() => setEspera((s) => s - 1), 1000)
+    return () => clearTimeout(t)
+  }, [espera])
+
+  async function reenviarConfirmacao() {
+    setErro(null)
+    setAviso(null)
+    setOcupado(true)
+    const { error } = await supabase.auth.resend({ type: 'signup', email, options: { emailRedirectTo: window.location.origin } })
+    setOcupado(false)
+    if (error) return setErro(traduzir(error.message))
+    setEspera(60)
+    setAviso('E-mail reenviado. Confira também a caixa de spam.')
+  }
 
   function irPara(m: Modo) {
     setModo(m)
@@ -114,15 +150,26 @@ export function Login({ modoInicial = 'entrar' }: { modoInicial?: Modo }) {
         const { data, error } = await supabase.auth.signUp({
           email,
           password: senha,
-          options: { data: { nome: nome.trim(), empresa: empresa.trim() } },
+          options: { data: { nome: nome.trim() }, emailRedirectTo: window.location.origin },
         })
         if (error) throw error
         if (!data.session) {
-          irPara('entrar')
-          setAviso(`Enviamos um link de confirmação para ${email}. Confirme e depois entre.`)
+          irPara('enviado')
+          setEspera(60)
           return
         }
         nav('/painel')
+      } else if (modo === 'convite') {
+        if (nome.trim().length < 2) throw new Error('Informe seu nome.')
+        if (!senhaValida(senha)) throw new Error('A senha não atende a todos os requisitos.')
+        if (senha !== senha2) throw new Error('As senhas não conferem.')
+        const { error } = await supabase.auth.updateUser({ password: senha, data: { nome: nome.trim() } })
+        if (error) throw error
+        const { error: e2 } = await supabase.rpc('vincular_convite', { p_nome: nome.trim() })
+        if (e2) throw e2
+        await recarregarPerfil()
+        setChegouPorConvite(false)
+        nav('/painel', { replace: true })
       } else if (modo === 'esqueci') {
         const { error } = await supabase.auth.resetPasswordForEmail(email)
         if (error) throw error
@@ -162,9 +209,25 @@ export function Login({ modoInicial = 'entrar' }: { modoInicial?: Modo }) {
     setAviso('Crie uma conta (ou entre com a sua) para abrir o modo simulação. Ele não precisa de hardware.')
   }
 
-  const titulo = { entrar: 'Entrar', criar: 'Criar conta', esqueci: 'Recuperar senha', codigo: 'Definir nova senha', nova: 'Definir nova senha' }[modo]
-  const botao = { entrar: 'Entrar na plataforma', criar: 'Criar conta', esqueci: 'Enviar código', codigo: 'Salvar nova senha', nova: 'Salvar nova senha' }[modo]
-  const novaSenha = modo === 'criar' || modo === 'codigo' || modo === 'nova'
+  const titulo = {
+    entrar: 'Entrar',
+    criar: 'Criar conta',
+    esqueci: 'Recuperar senha',
+    codigo: 'Definir nova senha',
+    nova: 'Definir nova senha',
+    enviado: 'Conta criada!',
+    convite: 'Bem-vindo à Eixo',
+  }[modo]
+  const botao = {
+    entrar: 'Entrar na plataforma',
+    criar: 'Criar conta',
+    esqueci: 'Enviar código',
+    codigo: 'Salvar nova senha',
+    nova: 'Salvar nova senha',
+    enviado: '',
+    convite: 'Salvar e entrar',
+  }[modo]
+  const novaSenha = modo === 'criar' || modo === 'codigo' || modo === 'nova' || modo === 'convite'
   const bloqueado = ocupado || (novaSenha && (!senhaValida(senha) || senha !== senha2))
 
   return (
@@ -193,32 +256,77 @@ export function Login({ modoInicial = 'entrar' }: { modoInicial?: Modo }) {
         </div>
       </div>
       <div className="form">
+        {modo === 'enviado' ? (
+          <div className="card done-card" role="status">
+            <div className="done-ico" aria-hidden="true">
+              <svg viewBox="0 0 48 48" width="56" height="56">
+                <circle cx="24" cy="24" r="22" fill="none" stroke="currentColor" strokeWidth="3" opacity=".25" />
+                <path d="M14 25l7 7 14-15" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <h2>{titulo}</h2>
+            <p className="muted">
+              Falta só confirmar o seu e-mail. Enviamos um link para <b className="mono" style={{ color: 'var(--fg)' }}>{email}</b>.
+            </p>
+            <ol className="done-steps">
+              <li>
+                Abra o e-mail <b>“Confirme seu e-mail · Eixo”</b> (confira também o spam).
+              </li>
+              <li>
+                Clique em <b>Confirmar e-mail</b>: você volta para a plataforma já conectado.
+              </li>
+              <li>Se você foi convidado, entra direto na empresa. Se não, cadastra a sua empresa (nome fantasia, razão social e CNPJ).</li>
+            </ol>
+            {erro && <p className="err">{erro}</p>}
+            {aviso && <p className="muted">{aviso}</p>}
+            <button className="btn btn-secondary" type="button" onClick={reenviarConfirmacao} disabled={ocupado || espera > 0}>
+              {espera > 0 ? `Reenviar e-mail (${espera}s)` : ocupado ? 'Enviando…' : 'Reenviar e-mail'}
+            </button>
+            <p className="muted" style={{ fontSize: 12, textAlign: 'center' }}>
+              Já confirmou? {link('entrar', 'Entrar')} · E-mail errado? {link('criar', 'Criar de novo')}
+            </p>
+          </div>
+        ) : (
         <form className="card" onSubmit={enviar}>
           <h2>{titulo}</h2>
+          {modo === 'convite' && (
+            <p className="muted">
+              {meta.convidado_por ? <b style={{ color: 'var(--fg)' }}>{meta.convidado_por}</b> : 'O master da empresa'} convidou você
+              {meta.empresa ? (
+                <>
+                  {' '}
+                  para a empresa <b style={{ color: 'var(--fg)' }}>{meta.empresa}</b>
+                </>
+              ) : null}
+              {meta.papel ? ` como ${meta.papel}` : ''}. Informe seu nome e crie uma senha para entrar.
+            </p>
+          )}
           {modo === 'esqueci' && <p className="muted">Informe o e-mail da sua conta. Você vai receber um e-mail com o link (ou o código de 6 dígitos) para definir uma senha nova.</p>}
           {modo === 'nova' && <p className="muted">Link de recuperação validado. Escolha a nova senha da sua conta.</p>}
 
-          {modo === 'criar' && (
+          {(modo === 'criar' || modo === 'convite') && (
             <div className="field">
               <label htmlFor="l-nome">Seu nome</label>
               <input id="l-nome" value={nome} onChange={(e) => setNome(e.target.value)} required autoComplete="name" />
             </div>
           )}
 
-          {modo !== 'nova' && (
+          {modo === 'convite' && (
             <div className="field">
               <label htmlFor="l-email">E-mail</label>
-              <input id="l-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="username" readOnly={modo === 'codigo'} />
+              <input id="l-email" type="email" value={session?.user.email ?? ''} readOnly autoComplete="username" />
             </div>
           )}
 
-          {modo === 'criar' && (
+          {modo !== 'nova' && modo !== 'convite' && (
             <div className="field">
-              <label htmlFor="l-empresa">Empresa</label>
-              <input id="l-empresa" value={empresa} onChange={(e) => setEmpresa(e.target.value)} placeholder="Ex.: Indústria Exemplo Ltda." autoComplete="organization" />
-              <span className="muted" style={{ fontSize: 12 }}>
-                Se você recebeu um convite, deixe em branco: você entra direto na empresa que te convidou. Sem convite, criamos a empresa e você vira o master dela.
-              </span>
+              <label htmlFor="l-email">E-mail</label>
+              <input id="l-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="username" readOnly={modo === 'codigo'} />
+              {modo === 'criar' && (
+                <span className="muted" style={{ fontSize: 12 }}>
+                  Recebeu um convite? Use o mesmo e-mail: você entra direto na empresa que te convidou.
+                </span>
+              )}
             </div>
           )}
 
@@ -293,6 +401,8 @@ export function Login({ modoInicial = 'entrar' }: { modoInicial?: Modo }) {
               </>
             ) : modo === 'nova' ? (
               <>Mudou de ideia? {link('entrar', 'Voltar para entrar')}</>
+            ) : modo === 'convite' ? (
+              <>Depois de salvar, você entra direto na empresa.</>
             ) : (
               <>
                 {modo === 'criar' ? 'Já tem conta? ' : 'Lembrou a senha? '}
@@ -301,6 +411,7 @@ export function Login({ modoInicial = 'entrar' }: { modoInicial?: Modo }) {
             )}
           </p>
         </form>
+        )}
       </div>
     </div>
   )

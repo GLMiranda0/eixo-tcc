@@ -9,7 +9,7 @@ import { PAPEL_LABEL } from '../lib/types'
 
 export function Shell() {
   const nav = useNavigate()
-  const { session, perfil, papel, isDev, isMaster, podeEditar, contaVisualizada, setContaVisualizada, sair } = useAuth()
+  const { session, perfil, papel, isDev, isMaster, contaVisualizada, setContaVisualizada, sair } = useAuth()
   const ids = useIdsMotoresFiltro()
   const chaveIds = ids ? ids.join(',') : '*'
   const [ativos, setAtivos] = useState(0)
@@ -58,7 +58,7 @@ export function Shell() {
           {item('/alertas', 'Alertas', ativos)}
           {item('/tutorial', 'Caminho de Tutorial')}
           {isMaster && item('/usuarios', 'Usuários')}
-          {(podeEditar || isDev) && item('/auditoria', 'Auditoria')}
+          {papel && item('/auditoria', 'Auditoria')}
         </nav>
         <div className="foot">
           <span>

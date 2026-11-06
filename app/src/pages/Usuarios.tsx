@@ -5,6 +5,20 @@ import { LIMITES_PAPEL, PAPEL_LABEL, type Convite, type Perfil } from '../lib/ty
 
 const data = (s: string | null | undefined) => (s ? new Date(s).toLocaleDateString('pt-BR') : '–')
 
+/** Chama a Edge Function "convidar", que envia o e-mail do convite (convite novo ou link de acesso para conta já existente). */
+async function enviarEmailConvite(conviteId: string): Promise<{ ok: true; tipo: 'convite' | 'link' } | { ok: false; erro: string; removido?: boolean }> {
+  const { data, error } = await supabase.functions.invoke('convidar', { body: { convite_id: conviteId, origem: window.location.origin } })
+  if (!error) return { ok: true, tipo: (data as { enviado?: 'convite' | 'link' })?.enviado ?? 'convite' }
+  const ctx = (error as { context?: Response }).context
+  try {
+    const corpo = ctx ? ((await ctx.json()) as { erro?: string; convite_removido?: boolean }) : null
+    if (corpo?.erro) return { ok: false, erro: corpo.erro, removido: corpo.convite_removido }
+  } catch {
+    /* resposta sem JSON */
+  }
+  return { ok: false, erro: 'o serviço de e-mail não respondeu' }
+}
+
 export function Usuarios() {
   const { perfil, session } = useAuth()
   const contaId = perfil?.conta_id ?? null
@@ -64,15 +78,48 @@ export function Usuarios() {
   async function convidar(e: FormEvent) {
     e.preventDefault()
     setOk(null)
+    setErro(null)
     if (!contaId) return setErro('Seu perfil ainda não está ligado a uma empresa.')
     const alvo = email.trim().toLowerCase()
     if (perfis.some((p) => p.email?.toLowerCase() === alvo)) return setErro('Este e-mail já é usuário da empresa.')
-    const feito = await executar(
-      'convidar',
-      () => supabase.from('convites').insert({ conta_id: contaId, email: alvo, papel: papelConvite, criado_por: session?.user.id }),
-      `Convite criado. Peça para ${alvo} criar a conta com este e-mail: ele entra direto como ${PAPEL_LABEL[papelConvite]}.`,
-    )
-    if (feito) setEmail('')
+    setOcupado('convidar')
+    const { data: novo, error } = await supabase
+      .from('convites')
+      .insert({ conta_id: contaId, email: alvo, papel: papelConvite, criado_por: session?.user.id })
+      .select('id')
+      .single()
+    if (error || !novo) {
+      setOcupado(null)
+      return setErro(error?.message.includes('convites_email_pendente') ? `Já existe um convite pendente para ${alvo}.` : error?.message ?? 'Erro ao criar o convite.')
+    }
+    const r = await enviarEmailConvite((novo as { id: string }).id)
+    setOcupado(null)
+    setEmail('')
+    recarregar()
+    if (r.ok) {
+      setOk(
+        r.tipo === 'convite'
+          ? `Convite enviado para ${alvo}. A pessoa recebe um e-mail com o link para definir a senha e entra direto como ${PAPEL_LABEL[papelConvite]}.`
+          : `${alvo} já tinha conta na Eixo, sem empresa: enviamos um link de acesso. Ao entrar, cai direto nesta empresa como ${PAPEL_LABEL[papelConvite]}.`,
+      )
+    } else if (r.removido) {
+      setErro(r.erro)
+    } else {
+      setErro(
+        `Convite criado, mas o e-mail não foi enviado (${r.erro}). Tente "Reenviar e-mail" na lista de pendentes, ou peça para ${alvo} criar a conta com este e-mail.`,
+      )
+    }
+  }
+
+  async function reenviar(c: Convite) {
+    setErro(null)
+    setOk(null)
+    setOcupado('reenv-' + c.id)
+    const r = await enviarEmailConvite(c.id)
+    setOcupado(null)
+    if (r.ok) setOk(`E-mail de convite reenviado para ${c.email}.`)
+    else setErro(r.removido ? r.erro : `Não foi possível reenviar para ${c.email}: ${r.erro}.`)
+    if (!r.ok && r.removido) recarregar()
   }
 
   const ativos = perfis.filter((p) => p.ativo)
@@ -189,8 +236,8 @@ export function Usuarios() {
           <form className="card" onSubmit={convidar}>
             <h3 style={{ marginBottom: 6 }}>Convidar usuário</h3>
             <p className="muted" style={{ marginBottom: 12, fontSize: 13 }}>
-              A pessoa cria a conta com o e-mail convidado e entra direto nesta empresa, com o papel escolhido. Admin edita motores e trata alertas; comum só
-              acompanha.
+              A pessoa recebe um e-mail com o link de acesso, define nome e senha e entra direto nesta empresa, com o papel escolhido. Admin edita motores e
+              trata alertas; comum só acompanha.
             </p>
             <div className="field" style={{ marginBottom: 10 }}>
               <label htmlFor="cv-email">E-mail</label>
@@ -213,7 +260,7 @@ export function Usuarios() {
               </p>
             )}
             <button className="btn btn-primary" type="submit" disabled={ocupado === 'convidar' || lotado(papelConvite)}>
-              Enviar convite
+              {ocupado === 'convidar' ? 'Enviando…' : 'Enviar convite por e-mail'}
             </button>
           </form>
 
@@ -236,6 +283,9 @@ export function Usuarios() {
                         {PAPEL_LABEL[c.papel]} · convidado em {data(c.criado_em)}
                       </small>
                     </div>
+                    <button className="btn btn-ghost btn-sm" disabled={ocupado === 'reenv-' + c.id} onClick={() => reenviar(c)}>
+                      {ocupado === 'reenv-' + c.id ? 'Enviando…' : 'Reenviar e-mail'}
+                    </button>
                     <button className="btn btn-ghost btn-sm" disabled={ocupado === 'conv-' + c.id} onClick={() => cancelarConvite(c)}>
                       Cancelar
                     </button>

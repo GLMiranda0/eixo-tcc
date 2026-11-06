@@ -22,14 +22,15 @@ Abre em http://localhost:5173. As variáveis `VITE_SUPABASE_URL` e `VITE_SUPABAS
 | `src/lib/sim.ts` | Coletor virtual: reproduz o ensaio da bancada (carga → corrente, vibração) |
 | `src/lib/hooks.ts` | Motores, leituras em tempo real (Realtime), alertas, status de aprendizado |
 | `src/lib/auth.tsx` | Sessão e perfil do usuário |
-| `src/pages/Login.tsx` | Entrar / criar conta / explorar em simulação |
+| `src/pages/Login.tsx` | Entrar / criar conta (tela de "conta criada, confirme o e-mail") / boas-vindas do convidado / explorar em simulação |
+| `src/pages/CadastroEmpresa.tsx` | Primeiro acesso sem convite: nome fantasia, razão social e CNPJ (numérico ou alfanumérico) |
 | `src/pages/Painel.tsx` | Visão geral: KPIs, tabela de motores, alertas ativos |
 | `src/pages/Motores.tsx` | Lista e cadastro (dados de placa + coletor) |
 | `src/pages/Motor.tsx` | Tempo real, histórico, fases do diagnóstico, limites, coletor e token |
 | `src/pages/Alertas.tsx` | Diagnóstico, ações corretivas, reconhecer/silenciar |
 | `src/pages/Tutorial.tsx` | Caminho de Tutorial com motor e coletor virtuais |
-| `src/pages/Usuarios.tsx` | Equipe da empresa (só master): convites, papéis, desativação, limites 1/4/5 |
-| `src/pages/Auditoria.tsx` | Registro de operações (master, admin e dev) com diff do que mudou |
+| `src/pages/Usuarios.tsx` | Equipe da empresa (só master): convites por e-mail (Edge Function `convidar`), papéis, desativação, limites 1/4/5 |
+| `src/pages/Auditoria.tsx` | Histórico de atividades: master, admin e comum veem eventos em texto (motor + coletor, convites e níveis, tratativa de alertas); o dev vê também os automáticos e a visão técnica (tabela/JSON) |
 | `src/pages/Dev.tsx` | Visão global para suporte (só dev): empresas, contagens e "Abrir quadro" |
 
 ## Papéis
@@ -45,7 +46,14 @@ Uma empresa nunca enxerga dados de outra (Row Level Security no banco).
 
 ## Banco
 
-Schema em `../prototipos/supabase/schema.sql`, seguido das migrações `002_papeis_auditoria.sql` e `003_ingestao_lotes_persistencia.sql` (ingestão em lote com `device_id`/`boot`/`seq`, persistência dos alertas da fase 1, `atributos_janela()` e a view `qualidade_telemetria`). Dados e usuário de teste em `../prototipos/supabase/teste.md`.
+Schema em `../prototipos/supabase/schema.sql`, seguido das migrações `002_papeis_auditoria.sql`, `003_ingestao_lotes_persistencia.sql` (ingestão em lote com `device_id`/`boot`/`seq`, persistência dos alertas da fase 1, `atributos_janela()` e a view `qualidade_telemetria`) e `004_cadastro_empresa_convites_auditoria.sql` (empresa cadastrada no primeiro acesso, convite aceito ao entrar, CNPJ validado, coluna `auditoria.evento`).
+
+## Cadastro, convites e e-mails
+
+1. Criar conta pede só nome, e-mail e senha. O app mostra "Conta criada" e pede a confirmação do e-mail.
+2. No primeiro acesso, `vincular_convite()` procura um convite pendente para o e-mail: se houver, a pessoa entra na empresa com o papel do convite; se não, o app abre o cadastro da empresa (`cadastrar_empresa`).
+3. O master convida pela tela Usuários. A Edge Function `convidar` (`../prototipos/supabase/functions/convidar/index.ts`, implantada sem "Verify JWT") envia o e-mail de convite; quem já tem conta sem empresa recebe um link de acesso.
+4. Os templates dos e-mails ficam em `../prototipos/supabase/emails/` (gerados por `gerar.py`) e são colados em Authentication › Emails › Templates. Para enviar a qualquer destinatário, o Supabase precisa de SMTP próprio (o SMTP padrão só entrega para a equipe do projeto, com poucos envios por hora). Dados e usuário de teste em `../prototipos/supabase/teste.md`.
 
 ## Publicação (Hostinger, plano Single)
 

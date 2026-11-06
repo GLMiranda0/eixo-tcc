@@ -107,6 +107,7 @@ export interface Perfil {
 export interface Conta {
   id: string
   nome: string
+  razao_social?: string | null
   cnpj: string | null
   ativa: boolean
   criado_em: string
@@ -134,6 +135,8 @@ export interface Auditoria {
   registro_id: string | null
   antes: Record<string, unknown> | null
   depois: Record<string, unknown> | null
+  /** ação manual classificada (migração 004); null = evento automático, visível só para o dev */
+  evento?: string | null
 }
 
 export interface VisaoDev {

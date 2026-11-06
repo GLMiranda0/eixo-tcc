@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Confirme seu e-mail</title>
+</head>
+<body style="margin:0;padding:0;background:#F3F6F9">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Falta um clique para ativar sua conta na Eixo.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F3F6F9">
+  <tr><td align="center" style="padding:32px 16px">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background:#FFFFFF;border:1px solid #D7DFE8;border-radius:16px;overflow:hidden">
+      <tr><td style="background:#0F1A28;padding:22px 32px">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td style="vertical-align:middle"><img src="https://eixomotores.cloud/email-logo.png" width="40" height="40" alt="" style="display:block;border:0;border-radius:10px"></td>
+          <td style="vertical-align:middle;padding-left:12px;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:24px;font-weight:800;letter-spacing:-0.5px;color:#E7EEF5">eixo</td>
+        </tr></table>
+      </td></tr>
+      <tr><td style="height:4px;background-color:#22D3EE;background-image:linear-gradient(90deg,#22D3EE,#2563EB);font-size:0;line-height:0">&nbsp;</td></tr>
+      <tr><td style="padding:32px 32px 8px;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#0F1A28">
+        <p style="margin:0 0 8px;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:#0891B2">Bem-vindo à Eixo</p>
+        <h1 style="margin:0 0 14px;font-size:24px;line-height:1.25;font-weight:800;color:#0F1A28">Confirme seu e-mail</h1>
+        <p style="margin:0 0 12px;font-size:15px;line-height:1.6;color:#33475B">Olá{{ if .Data.nome }}, {{ .Data.nome }}{{ end }}! Sua conta na Eixo foi criada com o e-mail <b>{{ .Email }}</b>. Confirme que o endereço é seu para ativar o acesso.</p><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 8px">
+              <tr><td style="border-radius:12px;background-color:#0891B2;background-image:linear-gradient(135deg,#0891B2,#2563EB)">
+                <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 28px;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;color:#FFFFFF;text-decoration:none;border-radius:12px">Confirmar e-mail &rarr;</a>
+              </td></tr>
+            </table><p style="margin:18px 0 8px;font-size:13px;font-weight:700;color:#0F1A28">Depois de confirmar</p><table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 4px;background:#F3F6F9;border-radius:12px;width:100%"><tr><td style="padding:14px 16px 6px"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td style="vertical-align:top;padding:0 10px 8px 0"><span style="display:inline-block;width:22px;height:22px;border-radius:11px;background:#DDF4FA;color:#0891B2;font-size:12px;font-weight:700;line-height:22px;text-align:center">1</span></td>
+<td style="vertical-align:top;padding:2px 0 8px;font-size:14px;line-height:1.5;color:#33475B">Você volta para a plataforma já conectado.</td></tr><tr><td style="vertical-align:top;padding:0 10px 8px 0"><span style="display:inline-block;width:22px;height:22px;border-radius:11px;background:#DDF4FA;color:#0891B2;font-size:12px;font-weight:700;line-height:22px;text-align:center">2</span></td>
+<td style="vertical-align:top;padding:2px 0 8px;font-size:14px;line-height:1.5;color:#33475B">Se recebeu um convite, entra direto na empresa que te convidou.</td></tr><tr><td style="vertical-align:top;padding:0 10px 8px 0"><span style="display:inline-block;width:22px;height:22px;border-radius:11px;background:#DDF4FA;color:#0891B2;font-size:12px;font-weight:700;line-height:22px;text-align:center">3</span></td>
+<td style="vertical-align:top;padding:2px 0 8px;font-size:14px;line-height:1.5;color:#33475B">Se não, cadastra a sua empresa (nome fantasia, razão social e CNPJ) e convida sua equipe.</td></tr></table></td></tr></table><p style="margin:14px 0 0;font-size:12px;line-height:1.5;color:#5A6B7E">O botão não abriu? Copie e cole no navegador:<br><a href="{{ .ConfirmationURL }}" style="color:#0891B2;word-break:break-all">{{ .ConfirmationURL }}</a></p>
+      </td></tr>
+      <tr><td style="padding:8px 32px 28px;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.6;color:#5A6B7E">
+        <p style="margin:16px 0 0;padding-top:16px;border-top:1px solid #EAF0F5">Não criou uma conta na Eixo? Ignore este e-mail: sem a confirmação, a conta não é ativada.</p>
+      </td></tr>
+    </table>
+    <p style="margin:18px 0 0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:11px;color:#8C9DB2">
+      Eixo · Supervisão inteligente de motores elétricos · <a href="https://eixomotores.cloud" style="color:#5A6B7E">eixomotores.cloud</a>
+    </p>
+  </td></tr>
+</table>
+</body>
+</html>
