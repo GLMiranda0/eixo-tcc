@@ -16,33 +16,73 @@ export const PONTOS = [
 
 export type PontoId = (typeof PONTOS)[number]['id']
 
-export const nomePonto = (id: string | undefined) => PONTOS.find((p) => p.id === id)?.nome ?? '–'
+export const nomePonto = (id: string | undefined | null) => PONTOS.find((p) => p.id === id)?.nome ?? '–'
 
-const LETRA: Record<Grandeza, string> = { temp: 'T', corr: 'I', vib: 'V', rot: 'n', tens: 'U' }
+export const LETRA: Record<Grandeza, string> = { temp: 'T', corr: 'I', vib: 'V', rot: 'n', tens: 'U' }
 
 export type StatusColetor = 'nenhum' | 'configurado' | 'conectando' | 'online' | 'erro'
 
+/** Onde a caixa do coletor é desenhada conforme o ponto em que foi fixada. */
+function posColetor(ponto: string | null | undefined) {
+  if (ponto === 'caixa') return { x: 150, y: 20, entrada: 'baixo' as const }
+  if (ponto === 'base') return { x: 300, y: 246, entrada: 'cima' as const }
+  return { x: 436, y: 198, entrada: 'esquerda' as const }
+}
+
 interface Props {
-  /** mostra os pontos clicáveis */
+  /** mostra os pontos clicáveis (modo instalação) */
   pontos?: boolean
+  /** ponto em destaque: o que está sob o item arrastado, ou o escolhido pelo teclado */
   pontoSelecionado?: string | null
+  /** há um item sendo arrastado sobre o desenho: todos os pontos viram alvos visíveis */
+  arrastando?: boolean
   onEscolher?: (id: PontoId) => void
   /** sensor → ponto onde foi instalado */
   instalados?: Partial<Record<Grandeza, string>>
+  /** ponto onde o coletor foi fixado; no modo instalação, sem ele o coletor não é desenhado */
+  coletorPonto?: string | null
   coletor?: StatusColetor
-  /** sensores habilitados (só para desenhar o coletor com as entradas certas) */
-  sensores?: Partial<Record<Grandeza, boolean>>
   girando?: boolean
   alerta?: boolean
 }
 
-export function MotorSvg({ pontos = false, pontoSelecionado = null, onEscolher, instalados = {}, coletor = 'nenhum', girando = false, alerta = false }: Props) {
+export function MotorSvg({ pontos = false, pontoSelecionado = null, arrastando = false, onEscolher, instalados = {}, coletorPonto = null, coletor = 'nenhum', girando = false, alerta = false }: Props) {
   const ledCor = coletor === 'online' ? 'var(--ok)' : coletor === 'erro' ? 'var(--crit)' : coletor === 'conectando' ? 'var(--warn)' : coletor === 'configurado' ? 'var(--accent)' : 'var(--border)'
   const pos = (id: string) => PONTOS.find((p) => p.id === id)
   const badges = (Object.entries(instalados) as [Grandeza, string][]).filter(([, p]) => p && pos(p))
+  // sensores no mesmo ponto ficam lado a lado
+  const desloc = (g: Grandeza, p: string) => {
+    const juntos = badges.filter(([, pp]) => pp === p)
+    const i = juntos.findIndex(([x]) => x === g)
+    return (i - (juntos.length - 1) / 2) * 18
+  }
+  const mostrarColetor = !pontos || !!coletorPonto
+  const cp = posColetor(coletorPonto)
+  const fios = mostrarColetor && coletor !== 'nenhum'
+
+  const fio = (g: Grandeza, p: string, i: number) => {
+    const pt = pos(p)!
+    const px = pt.x + desloc(g, p)
+    const py = pt.y
+    if (cp.entrada === 'baixo') {
+      const ex = cp.x + 40 + 6 * i
+      const ey = cp.y + 52
+      return `M${px} ${py} C ${px} ${py - 30}, ${ex} ${ey + 24}, ${ex} ${ey}`
+    }
+    if (cp.entrada === 'cima') {
+      const ex = cp.x + 30 + 6 * i
+      const ey = cp.y
+      return `M${px} ${py} C ${px} ${py + 30}, ${ex} ${ey - 24}, ${ex} ${ey}`
+    }
+    const ex = cp.x + 4
+    const ey = cp.y + 26 + 4 * i
+    return `M${px} ${py} C ${px} ${py + 40}, ${ex} ${ey}, ${ex} ${ey}`
+  }
+
+  const sel = pontoSelecionado ? pos(pontoSelecionado) : null
 
   return (
-    <svg className={'motor-svg' + (girando ? ' girando' : '') + (alerta ? ' alerta' : '')} viewBox="0 0 520 300" role="img" aria-label="Motor elétrico com pontos de instalação dos sensores">
+    <svg className={'motor-svg' + (girando ? ' girando' : '') + (alerta ? ' alerta' : '') + (arrastando ? ' drop' : '')} viewBox="0 0 520 300" role="img" aria-label="Motor elétrico com pontos de instalação dos sensores">
       <defs>
         <linearGradient id="mg-body" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="var(--surface-2)" />
@@ -103,40 +143,47 @@ export function MotorSvg({ pontos = false, pontoSelecionado = null, onEscolher, 
         ))}
       </g>
 
+      {/* fios dos sensores até o coletor */}
+      {fios && badges.map(([g, p], i) => <path key={g} d={fio(g, p, i)} className="mg-fio" stroke={GRANDEZAS[g].cor} />)}
+
       {/* coletor (gateway) */}
-      <g>
-        <rect x="436" y="198" width="72" height="52" rx="7" className="mg-painel" />
-        <text x="472" y="222" textAnchor="middle" className="mg-txt">
-          Coletor
-        </text>
-        <circle cx="500" cy="208" r="4" fill={ledCor} className={coletor === 'online' || coletor === 'conectando' ? 'mg-led on' : 'mg-led'} />
-        <rect x="446" y="232" width="52" height="8" rx="2" fill="var(--muted)" opacity=".35" />
-        {coletor !== 'nenhum' && badges.map(([g, p]) => {
-          const pt = pos(p)!
-          return <path key={g} d={`M${pt.x} ${pt.y} C ${pt.x} ${pt.y + 40}, 440 ${225 + 6 * badges.findIndex(([x]) => x === g)}, 440 ${226 + 4 * badges.findIndex(([x]) => x === g)}`} className="mg-fio" stroke={GRANDEZAS[g].cor} />
-        })}
-      </g>
+      {mostrarColetor && (
+        <g className="mg-coletor" key={cp.x + ':' + cp.y}>
+          <rect x={cp.x} y={cp.y} width="72" height="52" rx="7" className="mg-painel" />
+          <text x={cp.x + 36} y={cp.y + 24} textAnchor="middle" className="mg-txt">
+            Coletor
+          </text>
+          <circle cx={cp.x + 64} cy={cp.y + 10} r="4" fill={ledCor} className={coletor === 'online' || coletor === 'conectando' ? 'mg-led on' : 'mg-led'} />
+          <rect x={cp.x + 10} y={cp.y + 34} width="52" height="8" rx="2" fill="var(--muted)" opacity=".35" />
+          {fios &&
+            badges.map(([g], i) => (
+              <rect key={g} x={cp.x + 12 + i * 9} y={cp.y + 35} width="6" height="6" rx="1" fill={GRANDEZAS[g].cor} />
+            ))}
+        </g>
+      )}
 
       {/* sensores instalados */}
       {badges.map(([g, p]) => {
         const pt = pos(p)!
+        const dx = desloc(g, p)
         return (
-          <g key={g} className="mg-sensor">
-            <circle cx={pt.x} cy={pt.y} r="11" fill={GRANDEZAS[g].cor} />
-            <text x={pt.x} y={pt.y + 4} textAnchor="middle" className="mg-sensor-txt">
+          <g key={g + ':' + p} className="mg-sensor" style={{ transformOrigin: `${pt.x + dx}px ${pt.y}px` }}>
+            <circle cx={pt.x + dx} cy={pt.y} r="11" fill={GRANDEZAS[g].cor} />
+            <text x={pt.x + dx} y={pt.y + 4} textAnchor="middle" className="mg-sensor-txt">
               {LETRA[g]}
             </text>
           </g>
         )
       })}
 
-      {/* pontos clicáveis */}
+      {/* pontos de instalação (alvos de clique e de soltura) */}
       {pontos &&
         PONTOS.map((p, i) => {
           const ocupado = badges.some(([, pp]) => pp === p.id)
           return (
             <g
               key={p.id}
+              data-ponto={p.id}
               className={'mg-ponto' + (pontoSelecionado === p.id ? ' sel' : '') + (ocupado ? ' ocupado' : '')}
               onClick={() => onEscolher?.(p.id)}
               role="button"
@@ -149,7 +196,7 @@ export function MotorSvg({ pontos = false, pontoSelecionado = null, onEscolher, 
                 }
               }}
             >
-              <circle cx={p.x} cy={p.y} r="15" className="mg-ponto-halo" />
+              <circle cx={p.x} cy={p.y} r="17" className="mg-ponto-halo" />
               <circle cx={p.x} cy={p.y} r="10" className="mg-ponto-circ" />
               <text x={p.x} y={p.y + 4} textAnchor="middle" className="mg-ponto-txt">
                 {i + 1}
@@ -157,6 +204,16 @@ export function MotorSvg({ pontos = false, pontoSelecionado = null, onEscolher, 
             </g>
           )
         })}
+
+      {/* nome do ponto sob o item arrastado */}
+      {pontos && arrastando && sel && (
+        <g className="mg-rotulo" pointerEvents="none">
+          <rect x={Math.min(Math.max(8, sel.x - 80), 520 - 168)} y={sel.y - 40} width="160" height="20" rx="6" />
+          <text x={Math.min(Math.max(8, sel.x - 80), 520 - 168) + 80} y={sel.y - 26} textAnchor="middle">
+            {sel.nome.length > 30 ? sel.nome.slice(0, 29) + '…' : sel.nome}
+          </text>
+        </g>
+      )}
     </svg>
   )
 }

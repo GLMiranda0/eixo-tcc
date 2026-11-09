@@ -1,6 +1,6 @@
 /* Eixo · tokens da identidade visual (mesmos do protótipo) */
 :root{
-  --bg:#F3F6F9; --surface:#FFFFFF; --surface-2:#EAF0F5; --fg:#0F1A28; --muted:#5A6B7E; --border:#D7DFE8;
+  --bg:#F3F6F9; --surface:#FFFFFF; --surface-2:#EAF0F5; --fg:#0F1A28; --muted:#3F5063; --border:#D7DFE8;
   --accent:#0891B2; --accent-2:#2563EB; --accent-ink:#FFFFFF; --accent-soft:#DDF4FA; --glow:rgba(8,145,178,.35);
   --ok:#15803D; --ok-soft:#DCFCE7; --warn:#B45309; --warn-soft:#FEF3C7; --crit:#B91C1C; --crit-soft:#FEE2E2;
   --s-temp:#EA580C; --s-corr:#0891B2; --s-tens:#7C3AED; --s-rot:#16A34A; --s-vib:#DB2777;

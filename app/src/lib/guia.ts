@@ -55,6 +55,8 @@ export interface ProgressoGuia {
   config: ConfigColetorGuia | null
   /** ponto de instalação escolhido para cada sensor */
   montagem: Partial<Record<Grandeza, string>>
+  /** ponto onde o coletor foi fixado (os cabos dos sensores chegam nele) */
+  coletorPonto: string | null
   /** chave já gerada para o coletor (a chave em si fica no sessionStorage) */
   chaveGerada: boolean
   conectou: boolean
@@ -68,6 +70,7 @@ export const PROGRESSO_VAZIO: ProgressoGuia = {
   local: false,
   config: null,
   montagem: {},
+  coletorPonto: null,
   chaveGerada: false,
   conectou: false,
   alertaTratado: false,

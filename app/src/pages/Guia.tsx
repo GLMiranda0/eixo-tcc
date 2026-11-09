@@ -2,11 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } fro
 import { Link, useNavigate } from 'react-router-dom'
 import { Gauge } from '../components/Gauge'
 import { LineChart } from '../components/LineChart'
-import { MotorSvg, PONTOS, nomePonto, type PontoId, type StatusColetor } from '../components/MotorSvg'
+import { ExemploAprendizado } from '../components/ExemploAprendizado'
+import { LETRA, MotorSvg, PONTOS, nomePonto, type PontoId, type StatusColetor } from '../components/MotorSvg'
 import { useAuth } from '../lib/auth'
 import { PROGRESSO_VAZIO, limparProgresso, lerProgresso, salvarDecisaoGuia, salvarProgresso, type ConfigColetorGuia, type ProgressoGuia } from '../lib/guia'
 import { backendLocal, backendReal, type DadosMotor } from '../lib/guiaBackend'
-import { SENSORES, ZONAS_VIB, avaliarPonto, cobertura } from '../lib/guiaConteudo'
+import { SENSORES, ZONAS_VIB, avaliarColetor, avaliarPonto, cobertura } from '../lib/guiaConteudo'
 import { ColetorVirtual, SENSORES_EIXO, amostra } from '../lib/sim'
 import { novoToken } from '../lib/supabase'
 import { GRANDEZAS, SEV_LABEL, fmt, pior, severidade, type AcaoCorretiva, type Alerta, type Grandeza, type Leitura, type Motor, type Regra, type StatusAprendizado } from '../lib/types'
@@ -50,6 +51,30 @@ function guardarChave(motorId: string, chave: string) {
 }
 
 const esperar = (ms: number) => new Promise((r) => setTimeout(r, ms))
+
+/** item que se instala no desenho: um sensor ou o próprio coletor */
+type Item = Grandeza | 'coletor'
+const nomeItem = (it: Item) => (it === 'coletor' ? 'Coletor' : GRANDEZAS[it].nome)
+const letraItem = (it: Item) => (it === 'coletor' ? 'CLT' : LETRA[it])
+
+/** ponto de instalação sob as coordenadas de tela (o fantasma arrastado não recebe eventos) */
+function pontoEm(x: number, y: number): PontoId | null {
+  const el = document.elementFromPoint(x, y)
+  const direto = el?.closest('[data-ponto]')?.getAttribute('data-ponto') as PontoId | null
+  if (direto) return direto
+  // tolerância: o ponto mais próximo, até ~36 px do centro (os alvos são pequenos no desenho)
+  let melhor: PontoId | null = null
+  let dist = 36
+  document.querySelectorAll<SVGGElement>('.motor-svg.drop [data-ponto]').forEach((g) => {
+    const r = g.getBoundingClientRect()
+    const d = Math.hypot(r.left + r.width / 2 - x, r.top + r.height / 2 - y)
+    if (d < dist) {
+      dist = d
+      melhor = g.getAttribute('data-ponto') as PontoId
+    }
+  })
+  return melhor
+}
 
 export function Guia() {
   const nav = useNavigate()
@@ -112,18 +137,24 @@ export function Guia() {
   const cob = useMemo(() => cobertura(cfg.sensores, aplicacao), [cfg, aplicacao])
 
   // ---- instalação ----
-  const [sensorSel, setSensorSel] = useState<Grandeza | null>(null)
-  const [veredito, setVeredito] = useState<{ g: Grandeza; ponto: PontoId; ok: boolean; texto: string } | null>(null)
+  const [sensorSel, setSensorSel] = useState<Item | null>(null)
+  const [veredito, setVeredito] = useState<{ item: Item; ponto: PontoId; ok: boolean; texto: string } | null>(null)
+  /** item sendo arrastado, posição do ponteiro na tela e ponto do desenho sob ele */
+  const [arrasto, setArrasto] = useState<{ item: Item; x: number; y: number; alvo: PontoId | null } | null>(null)
+  const coletorOk = !!prog.coletorPonto && avaliarColetor(prog.coletorPonto as PontoId).ok
+  const sensorOk = (g: Grandeza) => {
+    const p = prog.montagem[g]
+    return !!p && avaliarPonto(g, p as PontoId, aplicacao).ok
+  }
+  const itemOk = (it: Item) => (it === 'coletor' ? coletorOk : sensorOk(it))
+  const itens: Item[] = [...sensoresAtivos, 'coletor']
   useEffect(() => {
     if (etapa !== 3 || sensorSel) return
-    const pend = sensoresAtivos.find((g) => !prog.montagem[g])
+    const pend = itens.find((it) => !itemOk(it))
     if (pend) setSensorSel(pend)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [etapa])
-  const montagemOk = sensoresAtivos.every((g) => {
-    const p = prog.montagem[g]
-    return p && avaliarPonto(g, p as PontoId, aplicacao).ok
-  })
+  const montagemOk = sensoresAtivos.every(sensorOk) && coletorOk
 
   // ---- conexão / coletor virtual ----
   const sim = useRef<ColetorVirtual | null>(null)
@@ -281,16 +312,58 @@ export function Guia() {
     })
   }
 
-  function escolherPonto(ponto: PontoId) {
-    if (!sensorSel) return setAviso('Primeiro escolha, na lista, qual sensor você vai instalar.')
+  /** instala um sensor (ou fixa o coletor) no ponto: só os pontos adequados ficam valendo */
+  function instalar(item: Item, ponto: PontoId) {
     setAviso(null)
-    const v = avaliarPonto(sensorSel, ponto, aplicacao)
-    setVeredito({ g: sensorSel, ponto, ...v })
-    if (v.ok) {
-      setProg((p) => ({ ...p, montagem: { ...p.montagem, [sensorSel]: ponto } }))
-      const prox = sensoresAtivos.find((g) => g !== sensorSel && !prog.montagem[g])
-      setSensorSel(prox ?? null)
+    const v = item === 'coletor' ? avaliarColetor(ponto) : avaliarPonto(item, ponto, aplicacao)
+    setVeredito({ item, ponto, ...v })
+    if (!v.ok) return
+    setProg((p) => (item === 'coletor' ? { ...p, coletorPonto: ponto } : { ...p, montagem: { ...p.montagem, [item]: ponto } }))
+    const prox = itens.find((it) => it !== item && !itemOk(it))
+    setSensorSel(prox ?? null)
+  }
+
+  /** clique num ponto do desenho (alternativa ao arrasto: escolha o item na lista e depois o ponto) */
+  function escolherPonto(ponto: PontoId) {
+    if (!sensorSel) return setAviso('Primeiro escolha, na lista, qual sensor você vai instalar, ou arraste-o até o desenho.')
+    instalar(sensorSel, ponto)
+  }
+
+  /** começa a arrastar um item da lista; vira arrasto de verdade só depois de o ponteiro andar alguns pixels */
+  function iniciarArrasto(item: Item, e: React.PointerEvent) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return
+    e.preventDefault()
+    const x0 = e.clientX
+    const y0 = e.clientY
+    let movendo = false
+    const mover = (ev: PointerEvent) => {
+      if (!movendo) {
+        if (Math.hypot(ev.clientX - x0, ev.clientY - y0) < 5) return
+        movendo = true
+        setSensorSel(item)
+      }
+      ev.preventDefault()
+      setArrasto({ item, x: ev.clientX, y: ev.clientY, alvo: pontoEm(ev.clientX, ev.clientY) })
     }
+    const soltar = (ev: PointerEvent) => {
+      window.removeEventListener('pointermove', mover)
+      window.removeEventListener('pointerup', soltar)
+      window.removeEventListener('pointercancel', cancelar)
+      if (!movendo) return // clique simples: o onClick do item cuida
+      setArrasto(null)
+      const alvo = pontoEm(ev.clientX, ev.clientY)
+      if (alvo) instalar(item, alvo)
+      else setAviso(`Solte ${item === 'coletor' ? 'o coletor' : 'o sensor de ' + nomeItem(item).toLowerCase()} sobre um dos pontos numerados do desenho.`)
+    }
+    const cancelar = () => {
+      window.removeEventListener('pointermove', mover)
+      window.removeEventListener('pointerup', soltar)
+      window.removeEventListener('pointercancel', cancelar)
+      setArrasto(null)
+    }
+    window.addEventListener('pointermove', mover)
+    window.addEventListener('pointerup', soltar)
+    window.addEventListener('pointercancel', cancelar)
   }
 
   async function conectar(e: FormEvent) {
@@ -469,8 +542,8 @@ export function Guia() {
     </div>
   )
 
-  const campo = (k: keyof typeof MOTOR_PADRAO, label: string, props: Record<string, unknown> = {}) => (
-    <div className="field">
+  const campo = (k: keyof typeof MOTOR_PADRAO, label: string, className: string, props: Record<string, unknown> = {}) => (
+    <div className={'field ' + className}>
       <label htmlFor={'g-' + k}>{label}</label>
       <input id={'g-' + k} value={fm[k]} onChange={(e) => setFm({ ...fm, [k]: e.target.value })} {...props} />
     </div>
@@ -559,16 +632,16 @@ export function Guia() {
               Preencha como na placa do motor. Já deixamos um motor típico preenchido: você pode alterar o que quiser. A <b>corrente nominal</b> define os limites de corrente; a{' '}
               <b>rotação nominal</b> é o que o modelo assume quando o coletor não mede rpm; a <b>aplicação</b> diz se a velocidade varia.
             </p>
-            <div className="grid g3" style={{ marginBottom: 12 }}>
-              {campo('tag', 'Tag', { required: true })}
-              {campo('nome', 'Nome', { required: true })}
-              {campo('fabricante', 'Fabricante')}
-              {campo('modelo', 'Modelo')}
-              {campo('potencia_cv', 'Potência (cv)', { inputMode: 'decimal' })}
-              {campo('corrente_nominal_a', 'Corrente nominal (A)', { inputMode: 'decimal', required: true })}
-              {campo('tensao_nominal_v', 'Tensão (V)', { inputMode: 'numeric' })}
-              {campo('rpm_nominal', 'Rotação nominal (rpm)', { inputMode: 'numeric' })}
-              <div className="field">
+            <div className="form-motor">
+              {campo('tag', 'Tag', 'c2', { required: true })}
+              {campo('nome', 'Nome', 'c4', { required: true })}
+              {campo('fabricante', 'Fabricante', 'c3')}
+              {campo('modelo', 'Modelo', 'c3')}
+              {campo('potencia_cv', 'Potência (cv)', 'c2', { inputMode: 'decimal' })}
+              {campo('tensao_nominal_v', 'Tensão (V)', 'c2', { inputMode: 'numeric' })}
+              {campo('rpm_nominal', 'Rotação nominal (rpm)', 'c2', { inputMode: 'numeric' })}
+              {campo('corrente_nominal_a', 'Corrente nominal (A)', 'c2', { inputMode: 'decimal', required: true })}
+              <div className="field c4">
                 <label htmlFor="g-aplicacao">Aplicação</label>
                 <select id="g-aplicacao" value={fm.aplicacao} onChange={(e) => setFm({ ...fm, aplicacao: e.target.value as 'fixa' | 'multispeed' })}>
                   <option value="fixa">Velocidade fixa (partida direta / soft-starter)</option>
@@ -717,30 +790,52 @@ export function Guia() {
         return (
           <>
             <p className="lead">
-              Selecione um sensor na lista e clique no ponto do motor onde ele deve ser instalado. Cada escolha recebe uma explicação; só os pontos adequados ficam valendo.
+              Cada sensor só mede bem em um lugar do motor: a vibração nasce nos mancais, o calor do enrolamento chega à carcaça, a corrente passa pelo cabo. <b>Arraste cada sensor da lista até o ponto numerado do desenho</b> onde
+              ele deve ficar e solte. A plataforma diz se o ponto serve e por quê; só os adequados ficam valendo. Por último, arraste o <b>coletor</b> para onde ele vai ser fixado: os cabos dos sensores são ligados nele.
             </p>
-            <div className="grid" style={{ gridTemplateColumns: '1fr 1.4fr', gap: 14 }}>
+            <div className="instalar-grid">
               <div className="instalar">
-                {sensoresAtivos.map((g) => {
-                  const p = prog.montagem[g]
-                  const ok = !!p && avaliarPonto(g, p as PontoId, aplicacao).ok
+                {itens.map((it) => {
+                  const ok = itemOk(it)
+                  const onde = it === 'coletor' ? prog.coletorPonto : prog.montagem[it]
+                  const cor = it === 'coletor' ? undefined : GRANDEZAS[it].cor
                   return (
-                    <button key={g} className={(sensorSel === g ? 'sel ' : '') + (ok ? 'ok' : '')} onClick={() => setSensorSel(g)}>
-                      <span className="sw" style={{ background: GRANDEZAS[g].cor }} />
-                      <span>
-                        {GRANDEZAS[g].nome}
-                        <small>{ok ? nomePonto(p) : 'escolha o ponto no desenho'}</small>
+                    <div
+                      key={it}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={(ok ? 'Reinstalar ' : 'Instalar ') + nomeItem(it)}
+                      aria-pressed={sensorSel === it}
+                      className={'item' + (sensorSel === it ? ' sel' : '') + (ok ? ' ok' : '') + (arrasto?.item === it ? ' arrastando' : '')}
+                      onPointerDown={(e) => iniciarArrasto(it, e)}
+                      onClick={() => setSensorSel(it)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          setSensorSel(it)
+                        }
+                      }}
+                    >
+                      <span className={'ico' + (it === 'coletor' ? ' coletor' : '')} style={cor ? { background: cor } : undefined}>
+                        {letraItem(it)}
                       </span>
-                      {ok ? <span className="pill ok">✓</span> : sensorSel === g ? <span className="pill sim">instalando</span> : <span className="pill">pendente</span>}
-                    </button>
+                      <span>
+                        {nomeItem(it)}
+                        <small>{ok ? nomePonto(onde) : it === 'coletor' ? 'arraste até onde ele será fixado' : 'arraste até o ponto do desenho'}</small>
+                      </span>
+                      {ok ? <span className="pill ok">✓ instalado</span> : sensorSel === it ? <span className="pill sim">agora</span> : <span className="alca" aria-hidden="true">⋮⋮</span>}
+                    </div>
                   )
                 })}
-                <p className="muted" style={{ fontSize: 12, marginTop: 6 }}>
-                  Depois dos sensores, fixe o coletor perto da caixa de ligação, longe da saída de ar quente, e alimente-o pelo painel.
+                <p className="dica">
+                  <span aria-hidden="true">☝</span>
+                  <span>
+                    <b>Como fazer:</b> segure um item, leve-o até um ponto numerado do motor e solte. Prefere clicar? Escolha o item na lista e depois clique no ponto. Você pode reinstalar um item a qualquer momento.
+                  </span>
                 </p>
               </div>
-              <div>
-                <MotorSvg pontos pontoSelecionado={null} onEscolher={escolherPonto} instalados={prog.montagem} coletor={statusColetor} girando={ativo} alerta={!!alertaAtivo} />
+              <div className={'desenho' + (arrasto ? ' drop' : '')}>
+                <MotorSvg pontos pontoSelecionado={arrasto?.alvo ?? null} arrastando={!!arrasto} onEscolher={escolherPonto} instalados={prog.montagem} coletorPonto={prog.coletorPonto} coletor={statusColetor} girando={ativo} alerta={!!alertaAtivo} />
                 <ul className="pontos-lista">
                   {PONTOS.map((p, i) => (
                     <li key={p.id}>
@@ -757,12 +852,12 @@ export function Guia() {
                 veredito.ok ? '✓' : '✕',
                 <>
                   <b>
-                    {GRANDEZAS[veredito.g].nome} em {nomePonto(veredito.ponto).toLowerCase()}.
+                    {nomeItem(veredito.item)} em {nomePonto(veredito.ponto).toLowerCase()}.
                   </b>{' '}
                   {veredito.texto}
                 </>,
               )}
-            {montagemOk && callout('ok', '✓', <>Todos os sensores estão em pontos adequados. Pode avançar para a conexão.</>)}
+            {montagemOk && callout('ok', '✓', <>Sensores e coletor estão em pontos adequados: os cabos dos sensores chegam às entradas do coletor. Pode avançar para a conexão.</>)}
           </>
         )
 
@@ -836,9 +931,7 @@ export function Guia() {
               </form>
             </div>
             <details open={mostrarChave} onToggle={(e) => setMostrarChave((e.target as HTMLDetailsElement).open)}>
-              <summary className="muted" style={{ cursor: 'pointer', fontSize: 13 }}>
-                Perdeu a chave? Veja ou gere outra
-              </summary>
+              <summary className="chave-resumo">Perdeu a chave? Veja ou gere outra</summary>
               <div className="chave-box">
                 {chave ? <code>{chave}</code> : <span className="muted">A chave não está guardada neste navegador.</span>}
                 <div className="row">
@@ -923,6 +1016,7 @@ export function Guia() {
               : cfg.sensores.rot
                 ? callout('ok', '✓', <>Com rotação medida, a linha de base é aprendida por faixa de velocidade: cada velocidade tem o próprio normal.</>)
                 : callout('info', 'i', <>Velocidade fixa sem rotação: o normal é um só, na velocidade nominal de {motor?.rpm_nominal ?? '–'} rpm.</>)}
+            <ExemploAprendizado persistencia={regraVib?.persistencia ?? 3} />
           </>
         )
 
@@ -1131,7 +1225,7 @@ export function Guia() {
               <h3>Motor virtual</h3>
               <span className={'pill ' + (ultima ? sev : '')}>{ultima ? SEV_LABEL[sev] : 'Sem dados'}</span>
             </div>
-            <MotorSvg instalados={prog.montagem} coletor={statusColetor} girando={ativo} alerta={!!alertaAtivo} />
+            <MotorSvg instalados={prog.montagem} coletorPonto={prog.coletorPonto} coletor={statusColetor} girando={ativo} alerta={!!alertaAtivo} />
             <div className="row" style={{ justifyContent: 'space-between', marginTop: 6 }}>
               <span className={'pill ' + (statusColetor === 'online' ? 'ok' : statusColetor === 'erro' ? 'crit' : '')}>
                 {statusColetor === 'online' && <span className="dot" />}
@@ -1179,6 +1273,18 @@ export function Guia() {
           </div>
         </aside>
       </div>
+
+      {arrasto && (
+        <div className={'arrasto-fantasma' + (arrasto.alvo ? ' alvo' : '')} style={{ left: arrasto.x, top: arrasto.y }} aria-hidden="true">
+          <span className={'ico' + (arrasto.item === 'coletor' ? ' coletor' : '')} style={arrasto.item === 'coletor' ? undefined : { background: GRANDEZAS[arrasto.item].cor }}>
+            {letraItem(arrasto.item)}
+          </span>
+          <span>
+            {nomeItem(arrasto.item)}
+            <small>{arrasto.alvo ? 'soltar em: ' + nomePonto(arrasto.alvo) : 'leve até um ponto do desenho'}</small>
+          </span>
+        </div>
+      )}
 
       {toast && (
         <div className="toast" role="status">

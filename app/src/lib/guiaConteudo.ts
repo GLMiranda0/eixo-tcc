@@ -133,6 +133,23 @@ export function avaliarPonto(g: Grandeza, ponto: PontoId, aplicacao: 'fixa' | 'm
   return regras[g][ponto] ?? { ok: false, texto: 'Este ponto não serve para esta grandeza.' }
 }
 
+/** Avalia o ponto escolhido para fixar o coletor: é eletrônica, precisa de cabos curtos, alimentação e pouco calor. */
+export function avaliarColetor(ponto: PontoId): Veredito {
+  const regras: Partial<Record<PontoId, Veredito>> = {
+    caixa: { ok: true, texto: 'Correto. Ao lado da caixa de ligação os cabos dos sensores ficam curtos, a alimentação sai dos próprios bornes e o coletor fica fora do fluxo de ar quente. Os cabos dos sensores são ligados nas entradas dele.' },
+    inversor: { ok: true, texto: 'Aceitável. Dentro do painel o coletor fica protegido e alimentado, mas os cabos dos sensores ficam longos: use cabo blindado e passe-o separado dos cabos de potência.' },
+    base: { ok: true, texto: 'Aceitável. Na base o coletor fica longe do calor, mas exposto a água e óleo de lavagem: use caixa IP65 e deixe folga nos cabos dos sensores.' },
+    carcaca: { ok: false, texto: 'Errado. A carcaça chega a 70 °C e vibra: a eletrônica do coletor não aguenta. Ele vai perto do motor, não nele.' },
+    mancal_la: { ok: false, texto: 'Errado. O mancal vibra e aquece. Aqui vai o sensor de vibração, não o coletor.' },
+    mancal_loa: { ok: false, texto: 'Errado. O mancal vibra e aquece. O coletor é eletrônica e fica fora do motor.' },
+    ventilador: { ok: false, texto: 'Errado. A tampa do ventilador vibra e o coletor bloquearia a entrada de ar de refrigeração.' },
+    eixo: { ok: false, texto: 'Impossível: o eixo gira.' },
+    cabos_juntos: { ok: false, texto: 'Errado. Pendurado nos cabos de potência o coletor recebe interferência e balança com eles.' },
+    cabo_fase: { ok: false, texto: 'Errado. Pendurado nos cabos de potência o coletor recebe interferência e balança com eles.' },
+  }
+  return regras[ponto] ?? { ok: false, texto: 'Este ponto não serve para o coletor.' }
+}
+
 export const ZONAS_VIB = [
   ['A', '< 1,8 mm/s', 'motor novo'],
   ['B', '1,8 a 2,8 mm/s', 'operação normal'],
