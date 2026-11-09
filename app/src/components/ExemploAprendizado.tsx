@@ -140,12 +140,12 @@ export function ExemploAprendizado({ persistencia = 3 }: { persistencia?: number
           {hora}h · {f1(v)} mm/s
         </text>
       </svg>
-      <div className="row" style={{ alignItems: 'center', margin: '6px 0 10px' }}>
-        <label htmlFor="ex-hora" className="muted" style={{ fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>
+      <div className="exemplo-hora">
+        <label htmlFor="ex-hora" className="muted">
           Hora do dia: <span className="num">{hora}h</span>
         </label>
-        <input id="ex-hora" type="range" min={0} max={23} value={hora} onChange={(e) => setHora(+e.target.value)} style={{ flex: 1, minWidth: 160 }} />
-        <span className="muted num" style={{ fontSize: 12 }}>
+        <input id="ex-hora" type="range" min={0} max={23} value={hora} onChange={(e) => setHora(+e.target.value)} />
+        <span className="muted num leitura">
           medido {f1(v)} · normal {f1(m)} ± {f1(2 * s)} mm/s · corrente {f0(corr)} % In
         </span>
       </div>

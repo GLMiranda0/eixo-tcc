@@ -127,6 +127,12 @@
 .exemplo-aprendizado{margin-top:14px;padding:14px;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
 .exemplo-aprendizado .card-h{align-items:flex-start}
 .exemplo-aprendizado .eyebrow{margin-bottom:2px}
+/* linha da hora: rótulo de largura fixa e resumo sempre na linha de baixo, para a barra não pular ao arrastar */
+.exemplo-hora{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;align-items:center;margin:6px 0 10px}
+.exemplo-hora label{font-size:12px;font-weight:600;white-space:nowrap;width:17ch}
+.exemplo-hora label .num{display:inline-block;min-width:3ch}
+.exemplo-hora input{min-width:0}
+.exemplo-hora .leitura{grid-column:1 / -1;font-size:12px;min-height:18px}
 
 /* portal de configuração do coletor (simulado) */
 .portal{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--surface);margin:12px 0}
