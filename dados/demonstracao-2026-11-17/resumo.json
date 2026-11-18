@@ -1,0 +1,93 @@
+{
+  "leituras": 274,
+  "inicio_utc": "2026-11-17T21:18:55.723000",
+  "fim_utc": "2026-11-17T21:28:03.421000",
+  "duracao_s": 547.7,
+  "intervalo_medio_s": 2.006,
+  "seq_min": 1,
+  "seq_max": 274,
+  "pct_recebidas": 100.0,
+  "invalidas": 9,
+  "invalidas_vib": [
+    106.59,
+    116.47,
+    120.74,
+    122.43,
+    132.46,
+    207.1,
+    211.62,
+    228.46,
+    248.57
+  ],
+  "atraso_p50_s": 4.64,
+  "atraso_p95_s": 10.16,
+  "atraso_max_s": 11.34,
+  "temp_min": 22.88,
+  "temp_max": 23.38,
+  "parado": {
+    "n": 195,
+    "corr_max_a": 0.21,
+    "uma_fase": [
+      [
+        124.5,
+        [
+          0.0,
+          0.0,
+          1.02
+        ]
+      ],
+      [
+        134.5,
+        [
+          0.0,
+          0.0,
+          1.42
+        ]
+      ]
+    ],
+    "vib_mediana": 0.38,
+    "vib_p95": 0.51,
+    "vib_max_valida": 1.59
+  },
+  "ligado": {
+    "n": 79,
+    "t_ini_s": 263.6,
+    "t_fim_s": 419.6,
+    "duracao_s": 156.1,
+    "corr_media_a": 1.438,
+    "corr_min_a": 1.43,
+    "corr_max_a": 1.45,
+    "corr_fases_media_a": [
+      1.438,
+      1.431,
+      1.443
+    ],
+    "pct_corrente_nominal": 70.5,
+    "vib_validas": 71,
+    "vib_mediana": 4.4,
+    "vib_p25": 3.5,
+    "vib_p75": 6.22,
+    "vib_min": 0.82,
+    "vib_max_valida": 82.27,
+    "vib_ge_critico": 34,
+    "vib_ge_atencao": 64,
+    "vib_gt_20": 5,
+    "eixo_maior": [
+      10,
+      5,
+      56
+    ]
+  },
+  "regra": {
+    "terceira_leitura_utc": "2026-11-17T21:24:01.305000",
+    "terceira_leitura_t_s": 305.6,
+    "valores": [
+      8.17,
+      6.1,
+      6.77
+    ],
+    "alerta_criado_utc": "2026-11-17T21:24:03.439Z",
+    "aquisicao_ate_alerta_s": 2.13,
+    "partida_ate_alerta_s": 44.2
+  }
+}

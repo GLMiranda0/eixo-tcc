@@ -12,7 +12,9 @@ Plataforma web para supervisão de motores elétricos: coleta corrente, temperat
 | `prototipos/` | Protótipo de telas (`eixo-prototipo.html`), estudo de viabilidade (`VIABILIDADE.md`) |
 | `prototipos/supabase/` | `schema.sql` (banco) e migrações `002_papeis_auditoria.sql`, `003_ingestao_lotes_persistencia.sql`, `004_cadastro_empresa_convites_auditoria.sql`, aplicadas nessa ordem; `functions/convidar` (Edge Function do convite por e-mail); `emails/` (templates do Supabase Auth); `teste.md` (dados e usuário de teste) |
 | `Documentos/Documento de Software.docx` | **Documento de Software**: requisitos funcionais e não funcionais, casos de uso, arquitetura, modelo de dados, método de diagnóstico, plano experimental e estado das evidências, alinhados ao protótipo implementado |
-| `Documentos/Artigo.docx` | **Artigo** para envio a periódico, após aprovação do orientador |
+| `Documentos/Artigo completo.docx` | **Artigo completo**: versão integral do manuscrito, com tudo o que foi desenvolvido e a demonstração de bancada |
+| `Documentos/Artigo.docx` | **Artigo** no formato do periódico (IEEE Latin America Transactions, 8 páginas; limite de 9), para envio após aprovação do orientador |
+| `dados/demonstracao-2026-11-17/` | Demonstração funcional com o motor de bancada: leituras exportadas (CSV), alerta e anomalia (JSON), telas da plataforma e `analise.py`, que recalcula os números e a figura citados nos documentos |
 
 ## Repositório complementar
 

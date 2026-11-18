@@ -8,8 +8,13 @@ app/.env
 *.env.local
 *.local.md
 .claude/settings.local.json
+.local/
 
 # sistema
 .DS_Store
 Thumbs.db
 ~$*.docx
+
+# Vídeo de apresentação: gravações brutas, áudios e quadros intermediários
+video/saida/
+video/Apresentacao.mp4

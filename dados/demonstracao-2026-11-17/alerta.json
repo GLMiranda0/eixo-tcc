@@ -1,0 +1,122 @@
+{
+  "alerta": {
+    "id": "51da410e-c313-4466-95a2-3235eb9df9fe",
+    "titulo": "vib acima do limite crítico",
+    "severidade": "critico",
+    "status": "ativo",
+    "mensagem": "Fase 1 (limites fixos): 3 leituras seguidas ≥ 4.5. Verifique a ação corretiva sugerida.",
+    "criado_em": "2026-11-17T21:24:03.438674+00:00",
+    "reconhecido_em": null,
+    "acao_registrada": null
+  },
+  "anomalia": {
+    "id": "5f10820d-f08e-41ac-acd5-fc44e1676300",
+    "ts_inicio": "2026-11-17T21:23:57.302+00:00",
+    "padrao": "sobrecarga",
+    "severidade": "critico",
+    "fase": 1,
+    "detalhes": {
+      "ts": [
+        "2026-11-17T21:24:01.305+00:00",
+        "2026-11-17T21:23:59.304+00:00",
+        "2026-11-17T21:23:57.302+00:00"
+      ],
+      "regra": {
+        "id": "94734ba2-d2f0-498e-b821-09fce651828e",
+        "origem": "padrao",
+        "persistencia": 3,
+        "limite_atencao": 2.8,
+        "limite_critico": 4.5
+      },
+      "valores": [
+        6.77,
+        6.1,
+        8.17
+      ],
+      "grandeza": "vib"
+    }
+  },
+  "motor": {
+    "tag": "M-01",
+    "nome": "Motor de bancada · coletas reais",
+    "fabricante": "WEG",
+    "modelo": "Carcaça 71 · 0,37 kW",
+    "potencia_cv": 0.5,
+    "tensao_nominal_v": 220,
+    "corrente_nominal_a": 2.04,
+    "rpm_nominal": 1680,
+    "aplicacao": "fixa",
+    "simulado": false,
+    "criado_em": "2026-11-17T21:10:45.463549+00:00"
+  },
+  "regras": [
+    {
+      "grandeza": "corr",
+      "limite_atencao": 2.142,
+      "limite_critico": 2.346,
+      "persistencia": 3,
+      "origem": "padrao"
+    },
+    {
+      "grandeza": "rot",
+      "limite_atencao": 1730.4,
+      "limite_critico": 1780.8,
+      "persistencia": 3,
+      "origem": "padrao"
+    },
+    {
+      "grandeza": "temp",
+      "limite_atencao": 70,
+      "limite_critico": 85,
+      "persistencia": 3,
+      "origem": "padrao"
+    },
+    {
+      "grandeza": "tens",
+      "limite_atencao": 231.0,
+      "limite_critico": 242.0,
+      "persistencia": 3,
+      "origem": "padrao"
+    },
+    {
+      "grandeza": "vib",
+      "limite_atencao": 2.8,
+      "limite_critico": 4.5,
+      "persistencia": 3,
+      "origem": "padrao"
+    }
+  ],
+  "qualidade_telemetria": [
+    {
+      "device_id": "coletor-6ce7b0",
+      "boot": 35,
+      "recebidas": 274,
+      "seq_min": 1,
+      "seq_max": 274,
+      "esperadas": 274,
+      "pct_recebidas": 100.0,
+      "invalidas": 9,
+      "primeira": "2026-11-17T21:18:55.723+00:00",
+      "ultima": "2026-11-17T21:28:03.421+00:00",
+      "atraso_p50_s": 4.645727,
+      "atraso_p95_s": 10.16348425
+    }
+  ],
+  "acoes_sugeridas": [
+    {
+      "ordem": 1,
+      "titulo": "Reduzir a carga mecânica aplicada ao eixo",
+      "descricao": "Alivie a carga acoplada (válvula, correia, freio ou setpoint do inversor) até a vibração voltar abaixo de 2,8 mm/s."
+    },
+    {
+      "ordem": 2,
+      "titulo": "Verificar alinhamento e rolamentos",
+      "descricao": "Se a vibração persistir com carga normal."
+    },
+    {
+      "ordem": 3,
+      "titulo": "Parar o motor",
+      "descricao": "Se a corrente ultrapassar 125 % de In por mais de 30 s."
+    }
+  ]
+}
