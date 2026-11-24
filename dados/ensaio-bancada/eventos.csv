@@ -1,0 +1,11 @@
+data,hora_brasilia,evento,codigo,observacao
+2026-11-24,10:59:47,observacao,,"coletor-6ce7b0, firmware 1.1.1, boot 40, envio a cada 2 s; motor desligado; acelerometro preso por parafuso; horarios lidos na tela do coletor"
+2026-11-24,11:02:11,partida,,"horario da exportacao (seq 214): primeira leitura com corrente; 1,45/1,46/1,47 A as 11:02:25"
+2026-11-24,11:04:05,calibracao,,"corrente conferida com alicate true-RMS: ver calibracao_corrente.csv"
+2026-11-24,11:02:25,observacao,,"picos de vibracao com o motor ligado: 63 mm/s (11:02:25) e 67 mm/s (11:04:05), com pico normalizado de 40 a 57 g"
+2026-11-24,11:07:00,intervencao,,"horario aproximado: cabo do acelerometro afastado dos cabos de alimentacao do motor; de 11:07:19 a 11:08:29, 20 leituras entre 0,4 e 0,9 mm/s, pico normalizado de 1,03 a 1,05"
+2026-11-24,13:19:37,observacao,,"motor ligado desde ~11:02; seq 4308, 0 perdidas, fila 0 de 90; CT1 1,43 a 1,47 A e CT2 1,42 a 1,48 A; CT3 instavel entre 0,76 e 1,14 A (era 1,49 A as 11:04), causa a verificar; vibracao X 0,5 a 0,65, Y 1,0 a 1,3, Z 0,45 a 0,55 mm/s; pico normalizado 1,01 a 1,03"
+2026-11-24,13:22:12,calibracao,,"segunda conferencia com alicate: 1,30/1,38/1,40 A; coletor 1,46/1,44/0,95 A; fase 3 real inalterada, defeito no canal CT3: ver calibracao_corrente.csv"
+2026-11-24,13:24:00,intervencao,,"horario aproximado: garra do transformador da fase 3 reposicionada; de 13:24:59 a 13:25:21, CT3 estavel entre 1,34 e 1,36 A (antes 0,80 a 1,07); causa: garra mal fechada ou deslocada; leituras de CT3 e da media de corrente de 13:12:21 a 13:24:23 (horarios da exportacao) sao invalidas"
+2026-11-24,13:27:31,parada,,"horario da exportacao (seq 4544): motor desligado apos 2 h 25 min 20 s; as 13:27:37 CT1/CT2/CT3 em 0,00 A, vibracao 0,2 a 0,5 mm/s, 29,4 C, seq 4547, 0 perdidas; plataforma com ultima leitura 13:28:05, estado Normal, coletor online"
+2026-11-24,13:29:17,exportacao,,"leituras_M-01_2026-11-24.csv: 5075 leituras do dia (boots 36 a 40); sessao = boot 40, seq 1 a 4597, de 10:55:04 a 13:29:17, sequencia contigua, 0 perdidas"

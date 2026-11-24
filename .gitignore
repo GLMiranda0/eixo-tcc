@@ -18,3 +18,10 @@ Thumbs.db
 # Vídeo de apresentação: gravações brutas, áudios e quadros intermediários
 video/saida/
 video/Apresentacao.mp4
+
+# Video abstract: vídeos brutos usados nos slides
+video/abstract/media/*.mp4
+video/abstract/saida/
+
+# Manuscritos em avaliação em periódico e material de submissão: ficam só na máquina
+Documentos/Artigo*

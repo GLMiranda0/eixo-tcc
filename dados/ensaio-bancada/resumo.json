@@ -1,0 +1,161 @@
+{
+  "boot": 40,
+  "leituras": 4597,
+  "inicio": "10:55:04",
+  "fim": "13:29:17",
+  "duracao_s": 9253.9,
+  "seq_min": 1,
+  "seq_max": 4597,
+  "sequencia_contigua": true,
+  "pct_recebidas": 100.0,
+  "perdidas_fila_max": 0,
+  "intervalo_medio_s": 2.013,
+  "intervalos_gt_5s": 4,
+  "intervalo_max_s": 14.4,
+  "atraso_p50_s": 0.25,
+  "atraso_p95_s": 2.16,
+  "atraso_p99_s": 2.22,
+  "atraso_max_s": 22.96,
+  "atraso_gt_5s": 4,
+  "invalidas": 45,
+  "temp_inicio": 21.31,
+  "temp_fim": 29.69,
+  "temp_max": 29.69,
+  "motor_ligado": {
+    "inicio": "11:02:11",
+    "fim": "13:27:29",
+    "n": 4330,
+    "duracao_s": 8718.8
+  },
+  "vib_parado_inicio": {
+    "n": 185,
+    "invalidas": 0,
+    "mediana": 0.4,
+    "p95": 0.5,
+    "max_valida": 8.54,
+    "max": 8.54,
+    "ge_atencao": 1,
+    "ge_critico": 1,
+    "janelas_k_seguidas_ge_critico": 0
+  },
+  "vib_parado_fim": {
+    "n": 54,
+    "invalidas": 0,
+    "mediana": 0.41,
+    "p95": 0.56,
+    "max_valida": 0.62,
+    "max": 0.62,
+    "ge_atencao": 0,
+    "ge_critico": 0,
+    "janelas_k_seguidas_ge_critico": 0
+  },
+  "vib_ligado_cabo_junto": {
+    "n": 145,
+    "invalidas": 44,
+    "mediana": 14.59,
+    "p95": 71.44,
+    "max_valida": 96.53,
+    "max": 322.82,
+    "ge_atencao": 141,
+    "ge_critico": 137,
+    "janelas_k_seguidas_ge_critico": 81
+  },
+  "vib_ligado_cabo_afastado": {
+    "n": 4176,
+    "invalidas": 1,
+    "mediana": 1.15,
+    "p95": 1.34,
+    "max_valida": 47.52,
+    "max": 243.07,
+    "ge_atencao": 4,
+    "ge_critico": 4,
+    "janelas_k_seguidas_ge_critico": 0
+  },
+  "vib_cabo_afastado_acima_atencao": [
+    [
+      "12:16:34",
+      5.92,
+      true
+    ],
+    [
+      "13:08:58",
+      8.0,
+      true
+    ],
+    [
+      "13:14:33",
+      243.07,
+      false
+    ],
+    [
+      "13:27:29",
+      47.52,
+      true
+    ]
+  ],
+  "corrente_fases_media_a": [
+    1.454,
+    1.442,
+    1.447
+  ],
+  "corrente_fases_min_a": [
+    1.43,
+    1.41,
+    1.42
+  ],
+  "corrente_fases_max_a": [
+    1.5,
+    1.48,
+    1.49
+  ],
+  "pct_corrente_nominal": 71.0,
+  "ct3_fora": {
+    "inicio": "13:12:21",
+    "fim": "13:27:29",
+    "n": 362
+  },
+  "calibracao_alicate": [
+    {
+      "hora": "11:04:05",
+      "fase": 1,
+      "alicate_a": 1.38,
+      "coletor_a": 1.48,
+      "erro_pct": 7.2
+    },
+    {
+      "hora": "11:04:05",
+      "fase": 2,
+      "alicate_a": 1.36,
+      "coletor_a": 1.47,
+      "erro_pct": 8.1
+    },
+    {
+      "hora": "11:04:05",
+      "fase": 3,
+      "alicate_a": 1.4,
+      "coletor_a": 1.49,
+      "erro_pct": 6.4
+    },
+    {
+      "hora": "13:22:12",
+      "fase": 1,
+      "alicate_a": 1.3,
+      "coletor_a": 1.46,
+      "erro_pct": 12.3
+    },
+    {
+      "hora": "13:22:12",
+      "fase": 2,
+      "alicate_a": 1.38,
+      "coletor_a": 1.44,
+      "erro_pct": 4.3
+    },
+    {
+      "hora": "13:22:12",
+      "fase": 3,
+      "alicate_a": 1.4,
+      "coletor_a": 0.95,
+      "erro_pct": -32.1
+    }
+  ]
+}

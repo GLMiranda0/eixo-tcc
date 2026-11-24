@@ -40,3 +40,11 @@ de referência. Nenhum desempenho diagnóstico pode ser calculado a partir deste
 - Um alerta crítico de vibração às 21:24:03 UTC, 44 s após a partida, depois de três leituras válidas
   seguidas acima de 4,5 mm/s (8,17, 6,10 e 6,77 mm/s). O mesmo instante é obtido aplicando a regra
   ao CSV, fora da plataforma.
+
+## Nota de 24/11/2026
+
+A sessão contínua de 24/11/2026 (`dados/ensaio-bancada/`) identificou a causa dos picos de vibração:
+interferência elétrica no cabo do acelerômetro, que passava junto aos cabos de alimentação do motor.
+Com o cabo afastado, a vibração em funcionamento ficou em torno de 1,15 mm/s. A mediana de
+4,40 mm/s e o alerta crítico desta sessão são, portanto, artefato de medição, e não vibração do motor.
+Os dados acima ficam como foram coletados.

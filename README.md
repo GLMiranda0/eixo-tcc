@@ -12,9 +12,9 @@ Plataforma web para supervisão de motores elétricos: coleta corrente, temperat
 | `prototipos/` | Protótipo de telas (`eixo-prototipo.html`), estudo de viabilidade (`VIABILIDADE.md`) |
 | `prototipos/supabase/` | `schema.sql` (banco) e migrações `002_papeis_auditoria.sql`, `003_ingestao_lotes_persistencia.sql`, `004_cadastro_empresa_convites_auditoria.sql`, aplicadas nessa ordem; `functions/convidar` (Edge Function do convite por e-mail); `emails/` (templates do Supabase Auth); `teste.md` (dados e usuário de teste) |
 | `Documentos/Documento de Software.docx` | **Documento de Software**: requisitos funcionais e não funcionais, casos de uso, arquitetura, modelo de dados, método de diagnóstico, plano experimental e estado das evidências, alinhados ao protótipo implementado |
-| `Documentos/Artigo completo.docx` | **Artigo completo**: versão integral do manuscrito, com tudo o que foi desenvolvido e a demonstração de bancada |
-| `Documentos/Artigo.docx` | **Artigo** no formato do periódico (IEEE Latin America Transactions, 8 páginas; limite de 9), para envio após aprovação do orientador |
+| Artigo | O manuscrito derivado deste trabalho está em avaliação em periódico e, por isso, não é distribuído neste repositório. O código, o esquema do banco, os dados e os scripts de análise citados nele estão aqui. |
 | `dados/demonstracao-2026-11-17/` | Demonstração funcional com o motor de bancada: leituras exportadas (CSV), alerta e anomalia (JSON), telas da plataforma e `analise.py`, que recalcula os números e a figura citados nos documentos |
+| `dados/ensaio-bancada/` | Sessão contínua de 24/11/2026 com o motor de bancada sem carga (2 h 34 min, 4.597 leituras): leituras exportadas (CSV), registro de eventos, conferência de corrente com alicate true-RMS e `analise.py` |
 
 ## Repositório complementar
 
@@ -33,6 +33,6 @@ Para publicar uma nova versão no site, veja "Publicação" em `app/README.md`.
 
 ## Equipe
 
-Mateus Balbino Alves · Cauan Rodrigues de Oliveira Leite · Lucas Rodrigues Zajac · Gabriel Lima Miranda · Victor Brito Pinheiro · Pedro Henrique Gomes Pereira
+Mateus Balbino Alves · Lucas Rodrigues Zajac · Gabriel Lima Miranda · Victor Brito Pinheiro · Pedro Henrique Gomes Pereira
 
 Orientador: Prof. Nelson Aguiar

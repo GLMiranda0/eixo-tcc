@@ -1,0 +1,10 @@
+data,hora_brasilia,fase,voltas_no_transformador,alicate_A,coletor_A,erro_percentual,observacao
+2026-11-24,10:59:47,1,1,,0.00,,motor desligado; alicate nao medido
+2026-11-24,10:59:47,2,1,,0.00,,motor desligado; alicate nao medido
+2026-11-24,10:59:47,3,1,,0.18,,motor desligado; alicate nao medido; ruido da fase 3 em repouso
+2026-11-24,11:04:05,1,1,1.38,1.48,7.2,motor ligado sem carga; correspondencia fase 1 = CT1 nao confirmada
+2026-11-24,11:04:05,2,1,1.36,1.47,8.1,motor ligado sem carga; correspondencia fase 2 = CT2 nao confirmada
+2026-11-24,11:04:05,3,1,1.40,1.49,6.4,motor ligado sem carga; correspondencia fase 3 = CT3 nao confirmada
+2026-11-24,13:22:12,1,1,1.30,1.46,12.3,motor ligado sem carga ha 2 h 20 min; coletor = media de 8 leituras (1.44 a 1.48)
+2026-11-24,13:22:12,2,1,1.38,1.44,4.3,motor ligado sem carga ha 2 h 20 min; coletor = media de 8 leituras (1.43 a 1.45)
+2026-11-24,13:22:12,3,1,1.40,0.95,-32.1,motor ligado sem carga ha 2 h 20 min; coletor = media de 8 leituras (0.80 a 1.07); CT3 instavel e abaixo do alicate: falha de medicao do canal 3
